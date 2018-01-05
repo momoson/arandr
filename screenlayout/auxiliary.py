@@ -30,25 +30,6 @@ class InadequateConfiguration(Exception):
     """A configuration is incompatible with the current state of X."""
 
 
-class BetterList(list):
-    """List that can be split like a string"""
-    def indices(self, item):
-        i = -1
-        while True:
-            try:
-                i = self.index(item, i+1)
-            except ValueError:
-                break
-            yield i
-
-    def split(self, item):
-        indices = list(self.indices(item))
-        yield self[:indices[0]]
-        for x in (self[a+1:b] for (a,b) in zip(indices[:-1], indices[1:])):
-            yield x
-        yield self[indices[-1]+1:]
-
-
 class Size(tuple):
     """2-tuple of width and height that can be created from a '<width>x<height>' string"""
     def __new__(cls, arg):
