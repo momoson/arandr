@@ -31,7 +31,14 @@ class InadequateConfiguration(Exception):
 
 
 class Size(tuple):
-    """2-tuple of width and height that can be created from a '<width>x<height>' string"""
+    """2-tuple of width and height that can be created from a '<width>x<height>' string
+
+    >>> s = Size("100x200")
+    >>> s.width
+    100
+    >>> print(s)
+    100x200
+    """
     def __new__(cls, arg):
         if isinstance(arg, str):
             arg = [int(x) for x in arg.split("x")]
@@ -69,7 +76,16 @@ class NamedSize(object):
         return 2
 
 class Position(tuple):
-    """2-tuple of left and top that can be created from a '<left>x<top>' string"""
+    """2-tuple of left and top that can be created from a '<left>x<top>' string
+
+    >>> p = Position("100x200")
+    >>> p.left
+    100
+    >>> p.top
+    200
+    >>> print(p)
+    100x200
+    """
     def __new__(cls, arg):
         if isinstance(arg, str):
             arg = [int(x) for x in arg.split("x")]
@@ -84,7 +100,18 @@ class Position(tuple):
         return "%dx%d"%self
 
 class Geometry(namedtuple("_Geometry", ['left', 'top', 'width', 'height'])):
-    """4-tuple of width, height, left and top that can be created from an XParseGeometry style string"""
+    """4-tuple of width, height, left and top that can be created from an XParseGeometry style string
+
+    >>> g = Geometry(100, 200, 300, 400)
+    >>> g.left
+    100
+    >>> g.top
+    200
+    >>> g.width, g.height
+    (300, 400)
+    >>> print(g)
+    300x400+100+200
+    """
     # FIXME: use XParseGeometry instead of an own incomplete implementation
     def __new__(cls, left, top=None, width=None, height=None):
         if isinstance(left, str):
@@ -118,5 +145,20 @@ class FlagClass(type):
         raise ValueError("No such %s flag: %r"%(self.__name__, label))
 
 class Flag(str, metaclass=FlagClass):
+    """Enum-style flag group
+
+    >>> class Color(Flag):
+    ...     values = ['green', 'purple']
+    ...     aliases = {'violet': 'purple'}
+    >>> Color('green') is Color.green
+    True
+    >>> Color('violet')
+    <Color "purple">
+    >>> Color('red')
+    Traceback (most recent call last):
+    ...
+    ValueError: No such Color flag: 'red'
+    """
+    # TODO: replace with Python 3.4 Enums
     def __repr__(self):
         return '<%s "%s">'%(type(self).__name__, self)
