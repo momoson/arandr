@@ -38,8 +38,8 @@ class Server(object):
 
         self.version = self.Version(self._output_help(), self._output('--version'))
 
-        if not force_version and not self.version.program_version.startswith(('1.2', '1.3', '1.4', )):
-            raise Exception("XRandR 1.2 to 1.4 required.")
+        if not force_version and not self.version.program_version.startswith(('1.2', '1.3', '1.4', '1.5')):
+            raise Exception("XRandR 1.2 to 1.5 required.")
 
         self.load(self._output('--query', '--verbose'))
 
