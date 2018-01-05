@@ -1,4 +1,3 @@
-* rename gtk to Gtk etc (first patch didn't cover it to stay readable)
 * find out why do_draw is called in different ways
 * port popup menu creation and other things not visible on first launch
 * restore the grid paddings that have been lost

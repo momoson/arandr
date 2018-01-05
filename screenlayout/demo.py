@@ -24,7 +24,7 @@ fetch the current tab widgets from the `current_tabs` global variable.
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk as gtk
+from gi.repository import Gtk
 
 from .widget import TransitionWidget, TransitionOutputWidget
 
@@ -49,7 +49,7 @@ def update_tabs(widget, notebook):
 
     for output_name in outputs:
         tabwidget = TransitionOutputWidget(widget, output_name)
-        notebook.insert_page(tabwidget, tab_label=gtk.Label(output_name.decode('utf8', errors='replace')), position=-1)
+        notebook.insert_page(tabwidget, tab_label=Gtk.Label(output_name.decode('utf8', errors='replace')), position=-1)
         current_tabs.append(tabwidget)
         tabwidget.connect('changed', lambda *args: widget.emit('changed'))
         tabwidget.update()
@@ -59,35 +59,35 @@ def update_tabs(widget, notebook):
 def main(do_run=True):
     """Create a demo widget in a window with some peripherials, and either run
     it in GTK or return the widget"""
-    w = gtk.Window()
-    w.connect('destroy',gtk.main_quit)
+    w = Gtk.Window()
+    w.connect('destroy',Gtk.main_quit)
 
     r = TransitionWidget()
     r.load_from_x()
 
-    output_properties = gtk.Notebook()
+    output_properties = Gtk.Notebook()
     r.connect('changed', update_tabs, output_properties)
     r.emit('changed')
 
-    b1 = gtk.Button(stock="gtk-refresh")
+    b1 = Gtk.Button(stock="gtk-refresh")
     b1.connect('clicked', lambda *args: r.load_from_x())
 
-    b2 = gtk.Button("Preview command")
-    b2.props.image = gtk.Image()
+    b2 = Gtk.Button("Preview command")
+    b2.props.image = Gtk.Image()
     b2.props.image.props.icon_name = "gtk-find"
     def preview(*args):
-        d = gtk.Dialog("Command preview", w, gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT, (gtk.STOCK_OK, gtk.ResponseType.ACCEPT))
-        l = gtk.Label(r.save_to_string())
+        d = Gtk.Dialog("Command preview", w, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, (Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
+        l = Gtk.Label(r.save_to_string())
         d.vbox.add(l)
         d.show_all()
         d.run()
         d.destroy()
     b2.connect('clicked', preview)
 
-    b3 = gtk.Button(stock='gtk-apply')
+    b3 = Gtk.Button(stock='gtk-apply')
     b3.connect('clicked', lambda *args: r.save_to_x())
 
-    v = gtk.VBox()
+    v = Gtk.VBox()
     w.add(v)
     v.add(r)
     v.add(output_properties)
@@ -97,7 +97,7 @@ def main(do_run=True):
     w.set_title('Simple ARandR Widget Demo')
     w.show_all()
     if do_run:
-        gtk.main()
+        Gtk.main()
     else:
         return r
 

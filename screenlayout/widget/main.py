@@ -20,10 +20,10 @@ import stat
 
 import gi
 gi.require_version('PangoCairo', '1.0')
-from gi.repository import Pango as pango
-from gi.repository import PangoCairo as pangocairo
+from gi.repository import Pango
+from gi.repository import PangoCairo
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk as gtk, GObject as gobject, Gdk as gdk
+from gi.repository import Gtk, GObject, Gdk
 
 from ..xrandr.constants import ConnectionStatus
 from ..xrandr.server import Server
@@ -35,9 +35,9 @@ from ..auxiliary import Geometry, Position, InadequateConfiguration
 import gettext
 gettext.install('arandr')
 
-class TransitionWidget(gtk.DrawingArea):
+class TransitionWidget(Gtk.DrawingArea):
     __gsignals__ = {
-            'changed':(gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            'changed':(GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE, ()),
             }
 
     def __init__(self, factor=8, context=None, force_version=False):
@@ -51,7 +51,7 @@ class TransitionWidget(gtk.DrawingArea):
         self.set_size_request(1024//self.factor, 1024//self.factor) # best guess for now
 
         self.connect('button-press-event', self.click)
-        self.set_events(gdk.EventMask.BUTTON_PRESS_MASK)
+        self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK)
 
         self.connect('changed', lambda widget: self._transition.predict_server()) # has to be registered first, so the other handlers can rely on having a current predicted_server present
         self.connect('changed', lambda widget: self._force_repaint())
@@ -73,17 +73,17 @@ class TransitionWidget(gtk.DrawingArea):
 
     def abort_if_unsafe(self):
         if not len([x for x in self._transition.outputs.values() if not x.off]):
-            d = gtk.MessageDialog(None, gtk.DialogFlags.MODAL, gtk.MessageType.WARNING, gtk.BUTTONS_YES_NO, _("Your configuration does not include an active monitor. Do you want to apply the configuration?"))
+            d = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.BUTTONS_YES_NO, _("Your configuration does not include an active monitor. Do you want to apply the configuration?"))
             result = d.run()
             d.destroy()
-            if result == gtk.ResponseType.YES:
+            if result == Gtk.ResponseType.YES:
                 return False
             else:
                 return True
         return False
 
     def error_message(self, message):
-            d = gtk.MessageDialog(None, gtk.DialogFlags.MODAL, gtk.MessageType.ERROR, gtk.BUTTONS_CLOSE, message)
+            d = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.BUTTONS_CLOSE, message)
             d.run()
             d.destroy()
 
@@ -272,23 +272,23 @@ class TransitionWidget(gtk.DrawingArea):
             widthperchar = textwidth/len(bigtext)
             textheight = int(widthperchar * 0.8) # i think this looks nice and won't overflow even for wide fonts
 
-            newdescr = pango.FontDescription("sans")
-            newdescr.set_size(textheight * pango.SCALE)
+            newdescr = Pango.FontDescription("sans")
+            newdescr.set_size(textheight * Pango.SCALE)
 
             if smalltext:
                 st_widthperchar = textwidth/len(smalltext)
                 st_textheight = int(st_widthperchar * 0.8)
-                st_descr = pango.FontDescription("sans")
-                st_descr.set_size(st_textheight * pango.SCALE)
+                st_descr = Pango.FontDescription("sans")
+                st_descr.set_size(st_textheight * Pango.SCALE)
 
             # create text
-            layout = pangocairo.create_layout(cr)
+            layout = PangoCairo.create_layout(cr)
             layout.set_font_description(newdescr)
             layout.set_text(bigtext, -1)
 
             # create small text
             if smalltext:
-                st_layout = pangocairo.create_layout(cr)
+                st_layout = PangoCairo.create_layout(cr)
                 st_layout.set_font_description(st_descr)
                 st_layout.set_text(smalltext, -1)
 
@@ -305,7 +305,7 @@ class TransitionWidget(gtk.DrawingArea):
             cr.rel_move_to(*layoutoffset)
 
             # paint text
-            pangocairo.show_layout(cr, layout)
+            PangoCairo.show_layout(cr, layout)
             cr.restore()
 
             if smalltext:
@@ -314,7 +314,7 @@ class TransitionWidget(gtk.DrawingArea):
                 cr.move_to(*center)
                 cr.rotate(predicted.rotation.angle)
                 cr.rel_move_to(*layoutoffset)
-                pangocairo.show_layout(cr, st_layout)
+                PangoCairo.show_layout(cr, st_layout)
                 cr.restore()
 
     def _force_repaint(self):
@@ -322,7 +322,7 @@ class TransitionWidget(gtk.DrawingArea):
         if self.get_window() is None:
             return # event received before window swas allocated
 
-        r = gdk.Rectangle()
+        r = Gdk.Rectangle()
         r.width = self._transition.server.virtual.max[0]//self.factor
         r.height = self._transition.server.virtual.max[1]//self.factor
         self.get_window().invalidate_rect(r, False)
@@ -349,7 +349,7 @@ class TransitionWidget(gtk.DrawingArea):
 
             if old_sequence != self.sequence:
                 self._force_repaint()
-        if event.button == gdk.BUTTON_SECONDARY:
+        if event.button == Gdk.BUTTON_SECONDARY:
             m = self.get_contextmenu_for(undermouse)
             m.show_all()
             m.popup(None, None, None, None, event.button, event.time)
@@ -391,12 +391,12 @@ class TransitionWidget(gtk.DrawingArea):
         return self._main_contextmenu
 
     def setup_contextmenu(self):
-        self._main_contextmenu = gtk.Menu()
+        self._main_contextmenu = Gtk.Menu()
         self._contextmenu_parts = {}
 
     def refresh_contextmenu(self):
         for output in sorted(self._transition.outputs.values(), key=lambda o: o.name):
-            i = gtk.MenuItem(output.name.decode('utf8', errors='replace'))
+            i = Gtk.MenuItem(output.name.decode('utf8', errors='replace'))
             i.props.submenu = self._contextmenu_for_output(output)
             self._main_contextmenu.append(i)
 
@@ -406,11 +406,11 @@ class TransitionWidget(gtk.DrawingArea):
                 i.props.sensitive = False
 
     def _contextmenu_for_output(self, output):
-        m = gtk.Menu()
-        details = gtk.MenuItem(_("Details..."))
+        m = Gtk.Menu()
+        details = Gtk.MenuItem(_("Details..."))
         m.append(details)
 
-        enabled = gtk.CheckMenuItem(_("Active"))
+        enabled = Gtk.CheckMenuItem(_("Active"))
         enabled.props.active = output.named_mode or output.precise_mode
         enabled.connect('activate', lambda menuitem: output.set_active)
 
@@ -418,9 +418,9 @@ class TransitionWidget(gtk.DrawingArea):
         return m
 
         if oc.active:
-            res_m = gtk.Menu()
+            res_m = Gtk.Menu()
             for r in os.modes:
-                i = gtk.CheckMenuItem(str(r))
+                i = Gtk.CheckMenuItem(str(r))
                 i.props.draw_as_radio = True
                 i.props.active = (oc.mode.name == r.name)
                 def _res_set(menuitem, on, r):
@@ -431,9 +431,9 @@ class TransitionWidget(gtk.DrawingArea):
                 i.connect('activate', _res_set, on, r)
                 res_m.add(i)
 
-            or_m = gtk.Menu()
+            or_m = Gtk.Menu()
             for r in ROTATIONS:
-                i = gtk.CheckMenuItem("%s"%r)
+                i = Gtk.CheckMenuItem("%s"%r)
                 i.props.draw_as_radio = True
                 i.props.active = (oc.rotation == r)
                 def _rot_set(menuitem, on, r):
@@ -446,9 +446,9 @@ class TransitionWidget(gtk.DrawingArea):
                     i.props.sensitive = False
                 or_m.add(i)
 
-            res_i = gtk.MenuItem(_("Resolution"))
+            res_i = Gtk.MenuItem(_("Resolution"))
             res_i.props.submenu = res_m
-            or_i = gtk.MenuItem(_("Orientation"))
+            or_i = Gtk.MenuItem(_("Orientation"))
             or_i.props.submenu = or_m
 
             m.add(res_i)
@@ -460,9 +460,9 @@ class TransitionWidget(gtk.DrawingArea):
     #################### drag&drop ####################
 
     def setup_draganddrop(self):
-        self.drag_source_set(gdk.ModifierType.BUTTON1_MASK, [gtk.TargetEntry.new('screenlayout-output', gtk.TargetFlags.SAME_WIDGET, 0)], 0)
-        self.drag_dest_set(0, [gtk.TargetEntry.new('screenlayout-output', gtk.TargetFlags.SAME_WIDGET, 0)], 0)
-        #self.drag_source_set(gdk.ModifierType.BUTTON1_MASK, [], 0)
+        self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [Gtk.TargetEntry.new('screenlayout-output', Gtk.TargetFlags.SAME_WIDGET, 0)], 0)
+        self.drag_dest_set(0, [Gtk.TargetEntry.new('screenlayout-output', Gtk.TargetFlags.SAME_WIDGET, 0)], 0)
+        #self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [], 0)
         #self.drag_dest_set(0, [], 0)
 
         self._draggingfrom = None
@@ -480,14 +480,14 @@ class TransitionWidget(gtk.DrawingArea):
             output = self._get_point_active_output(*self._lastclick)
         except IndexError:
             # FIXME: abort?
-            self.drag_source_set_icon_stock(gtk.STOCK_CANCEL)
-            widget.emit('drag-failed', context, gtk.DragResult.NO_TARGET)
+            self.drag_source_set_icon_stock(Gtk.STOCK_CANCEL)
+            widget.emit('drag-failed', context, Gtk.DragResult.NO_TARGET)
             return None
 
         self._draggingoutput = output
         self._draggingfrom = self._lastclick
         self._draggingfrom_pos = output.position or output.predicted_server_output.geometry.position
-        self.drag_source_set_icon_stock(gtk.STOCK_FULLSCREEN)
+        self.drag_source_set_icon_stock(Gtk.STOCK_FULLSCREEN)
 
         self._transition.predict_server()
 
@@ -506,7 +506,7 @@ class TransitionWidget(gtk.DrawingArea):
             return False
 
         # needs to be set every time to keep sending the movements!
-        gdk.drag_status(context, gdk.DragAction.MOVE, time)
+        Gdk.drag_status(context, Gdk.DragAction.MOVE, time)
 
         rel = x-self._draggingfrom[0], y-self._draggingfrom[1]
 

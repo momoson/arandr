@@ -23,9 +23,9 @@ or form an own independent module in the style of sexy.
 # even worse so, i copy-pasted this from another project of mine, carddecoders.
 # did i mention this should be split out?
 
-from gi.repository import Gtk as gtk
+from gi.repository import Gtk
 
-class CategoryDefinitionWidget(gtk.Table):
+class CategoryDefinitionWidget(Gtk.Table):
     """Widget that displays a list of items grouped to categories in the style
     of the "Frames and Separators" chapter of the Gnome HIG.
 
@@ -38,7 +38,7 @@ class CategoryDefinitionWidget(gtk.Table):
         [
             ("some category", "What:", "Spam"),
             ("some category", "How much:", "very much"),
-            ("another category", gtk.Label("Widget:"), gtk.Entry()),
+            ("another category", Gtk.Label("Widget:"), Gtk.Entry()),
             ]
     will look like this:
 
@@ -67,7 +67,7 @@ class CategoryDefinitionWidget(gtk.Table):
         for category_label, label, data in items:
             # category separator
             if category_label != last_category:
-                clabel = gtk.Label()
+                clabel = Gtk.Label()
                 clabel.set_markup('<b>%s</b>'%category_label) # FIXME: escape?
                 clabel.props.xalign = 0
                 self.attach(clabel, 0, 2, row, row+1)
@@ -75,14 +75,14 @@ class CategoryDefinitionWidget(gtk.Table):
                 last_category = category_label
 
             # conversion to widgets if required
-            if not isinstance(label, gtk.Widget):
-                label = gtk.Label(label)
+            if not isinstance(label, Gtk.Widget):
+                label = Gtk.Label(label)
                 label.props.xalign = 0
-            if not isinstance(data, gtk.Widget):
-                data = gtk.Label(data)
+            if not isinstance(data, Gtk.Widget):
+                data = Gtk.Label(data)
                 data.props.xalign = 0
 
-            indent = gtk.Alignment()
+            indent = Gtk.Alignment()
             indent.set_padding(0, 0, 12, 0)
             indent.add(label)
 
