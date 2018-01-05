@@ -22,6 +22,8 @@ import inspect
 from .executions import contextbuilder
 from .executions import context as executions_context
 
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk as gtk
 
 from . import widget

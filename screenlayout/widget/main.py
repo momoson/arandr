@@ -17,9 +17,14 @@
 
 import os
 import stat
+
+import gi
+gi.require_version('PangoCairo', '1.0')
 from gi.repository import Pango as pango
 from gi.repository import PangoCairo as pangocairo
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk as gtk, GObject as gobject, Gdk as gdk
+
 from ..xrandr.constants import ConnectionStatus
 from ..xrandr.server import Server
 from ..xrandr.transition import Transition
