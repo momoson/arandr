@@ -26,7 +26,7 @@ from ..executions.contextbuilder import build_default_context
 from ..auxiliary import Size, Geometry, XRandRParseError
 from ..polygon import ConvexPolygon
 
-from .helpers import Mode, asciibytes
+from .helpers import Mode, asciibytes, utf8bytes
 
 class Server(object):
     def __init__(self, context=None, force_version=False):
@@ -262,7 +262,7 @@ class Server(object):
             ret.is_preferred = b'+preferred' in matchdata['serverflags']
             ret.is_current = b'*current' in matchdata['serverflags']
 
-            ret.name = matchdata['name']
+            ret.name = utf8bytes(matchdata['name'])
             ret.id = int(matchdata['mode_id'], 16)
 
             # not comparing hclock and vclock values, as they can be rather
@@ -312,7 +312,7 @@ class Server(object):
                 raise XRandRParseError("Unmatched headline: %r."%headline)
             headline_parsed = headline_parsed.groupdict()
 
-            self.name = headline_parsed['name']
+            self.name = utf8bytes(headline_parsed['name'])
             # the values were already checked in the regexp
             self.connection_status = ConnectionStatus(asciibytes(headline_parsed['connection']))
 

@@ -55,3 +55,13 @@ def asciibytes(b):
         return b.decode('ascii')
     except UnicodeDecodeError:
         raise XRandRParseError("Non-ASCII bytes in xrandr output where ASCII was expected (%r)"%b)
+
+def utf8bytes(b):
+    """Like .decode('utf8'), but raises XRandRParseError because that's the
+    only exception that should be raised from parsing under the assumption that
+    the code is correct but the input is invalid."""
+
+    try:
+        return b.decode('utf8')
+    except UnicodeDecodeError:
+        raise XRandRParseError("Non-UTF8 bytes in xrandr output where human-readable output was expected (%r)"%b)

@@ -152,12 +152,9 @@ class TransitionWidget(Gtk.DrawingArea):
         self.load_from_x()
 
     def save_to_string(self):
-        '''
         from shlex import quote as shell_quote
 
         return " ".join(map(shell_quote, self._transition.serialize()))
-        '''
-        return 'FIXME: shlex vs bytes in strings'
 
     '''
     def save_to_file(self, file, template=None, additional=None):
@@ -260,7 +257,7 @@ class TransitionWidget(Gtk.DrawingArea):
             cr.rectangle(*rect)
             cr.stroke()
 
-            bigtext = predicted.name.decode('utf8', errors='replace')
+            bigtext = predicted.name
             if output_transition.auto or (not output_transition.named_mode or output_transition.precise_mode):
                 ## painted below the output name, must not be too long
                 smalltext = _("actual size may vary")
@@ -396,7 +393,7 @@ class TransitionWidget(Gtk.DrawingArea):
 
     def refresh_contextmenu(self):
         for output in sorted(self._transition.outputs.values(), key=lambda o: o.name):
-            i = Gtk.MenuItem(output.name.decode('utf8', errors='replace'))
+            i = Gtk.MenuItem(output.name)
             i.props.submenu = self._contextmenu_for_output(output)
             self._main_contextmenu.append(i)
 
