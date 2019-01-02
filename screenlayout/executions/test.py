@@ -38,7 +38,7 @@ def create_statemachine(outfilename="statemachine.zip"):
     f = zipfile.ZipFile(outfilename, "w")
 
     f.writestr("ls testfile.out", "")
-    f.writestr("ls testfile.err", "ls: cannot access testfile: No such file or directory\n")
+    f.writestr("ls testfile.err", "ls: cannot access 'testfile': No such file or directory\n")
     f.writestr("ls testfile.exit", "2")
     f.writestr("exists/ls testfile.out", "testfile\n")
 
