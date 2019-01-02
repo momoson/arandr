@@ -16,6 +16,15 @@
 
 import weakref
 import copy
+import enum
+
+class FreezeLevel(enum.Enum):
+    """Extension of freezing, see Transition.freeze_state"""
+    NONE = 0
+    # Does "only positions" make sense?
+    DEFAULT = 50
+    # Does "even properties" make sense?
+    ALL = 100
 
 class PredictedServer(object):
     def __init__(self, original_server):
@@ -60,6 +69,9 @@ class BaseTransitionOutput(object):
         """Update .predicted_server_output as BaseTransition.predict_server
         does. Do not call this directly unless you know what you're doing
         (instead, call the complete transition's predict_server function)."""
+
+    def freeze_state(self, level=FreezeLevel.ALL):
+        """Analogous to ``BaseTransition.freeze_state``"""
 
     def __repr__(self):
         return "<%s %r of %s>"%(type(self).__name__, self.name, self.transition)
@@ -158,6 +170,23 @@ class BaseTransition(object):
 
         for output in self.outputs.values():
             output.predict_server()
+
+    def freeze_state(self, level=FreezeLevel.ALL):
+        """Explicitly set parameters in the transition that'd leave the given
+        server as it is. If a different level than ALL is given, it's up to the
+        module to decide whether or not to set individual parameters.
+
+        (For example, level.DEFAULT will set position and resolution but not
+        refresh rate or properties).
+
+        This method is useful to freeze a configuration, or to give the user
+        better understandable settings in a graphical interface.
+
+        Calling this is only valid on an empty transition.
+        """
+
+        for output in self.outputs.values():
+            output.freeze_state(level)
 
     def __repr__(self):
         return '<%s bound to %s: %s>'%(type(self).__name__, self.server, self.serialize() or "no changes")

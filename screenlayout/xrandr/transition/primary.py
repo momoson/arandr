@@ -60,4 +60,16 @@ class TransitionForPrimary(base.BaseTransition):
         if self.primary not in (None, self.NO_PRIMARY):
             self.predicted_server.primary = self.predicted_server.outputs[self.primary.name]
 
+    def freeze_state(self, level=base.FreezeLevel.ALL):
+        super().freeze_state(level)
+
+        if self.server.primary is not None:
+            self.primary = self.outputs[self.server.primary.name]
+        else:
+            if self.server.version.at_least_program_version(1, 4):
+                self.primary = self.NO_PRIMARY
+            else:
+                # earlier versions don't report a primary, so it's a safe default not to touch primary at all
+                pass
+
     Output = TransitionOutputForPrimary

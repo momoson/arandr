@@ -79,6 +79,12 @@ class TransitionOutputForPosition(base.BaseTransitionOutput):
                 virtualsize.height - max_y if max_y > virtualsize.height else 0)
         self._shift(delta)
 
+    def freeze_state(self, level=base.FreezeLevel.ALL):
+        super().freeze_state(level)
+
+        if self.server_output.active:
+            self.set_any_position()
+
 class TransitionForPosition(base.BaseTransition):
     Output = TransitionOutputForPosition
 

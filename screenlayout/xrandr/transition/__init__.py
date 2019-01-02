@@ -16,6 +16,8 @@
 
 from . import primary, position, mode
 
+from .base import FreezeLevel
+
 Transition = type("Transition", (
     primary.TransitionForPrimary,
     position.TransitionForPosition,

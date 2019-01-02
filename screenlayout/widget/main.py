@@ -27,7 +27,7 @@ from gi.repository import Gtk, GObject, Gdk
 
 from ..xrandr.constants import ConnectionStatus
 from ..xrandr.server import Server
-from ..xrandr.transition import Transition
+from ..xrandr.transition import Transition, FreezeLevel
 from ..snap import Snap
 from ..executions.contextbuilder import build_default_context
 from ..auxiliary import Geometry, Position, InadequateConfiguration
@@ -109,29 +109,9 @@ class TransitionWidget(Gtk.DrawingArea):
     def load_from_x(self):
         server = Server(context=self.context, force_version=self.force_version)
         self._transition = Transition(server)
-        self._make_transition_nonempty()
+        self._transition.freeze_state(FreezeLevel.DEFAULT)
         self._xrandr_was_reloaded()
 
-    def _make_transition_nonempty(self):
-        """Set some configuration parameters in the transition that don't
-        change the server in its default configuration, but help the user get
-        an overview of the state in the transition.
-
-        Only call this with an empty transition."""
-        for output in self._transition.outputs.values():
-            if output.server_output.active:
-                output.set_any_mode()
-                output.set_any_position()
-            else:
-                output.off = True
-        if self._transition.server.primary is not None:
-            self._transition.primary = self._transition.outputs[self._transition.server.primary.name]
-        else:
-            if self._transition.server.version.at_least_program_version(1, 4):
-                self._transition.primary = self._transition.NO_PRIMARY
-            else:
-                # earlier versions don't report a primary, so it's a safe default not to touch primary at all
-                pass
 
     def _xrandr_was_reloaded(self):
         self.sequence = sorted(self._transition.outputs.values(), key=lambda o: o.name)

@@ -22,6 +22,7 @@ import optparse
 
 import screenlayout.xrandr
 import screenlayout.meta
+from screenlayout.xrandr.transition import FreezeLevel
 
 from pipes import quote as shell_quote
 
@@ -30,7 +31,5 @@ p.parse_args()
 
 server = screenlayout.xrandr.Server()
 transition = screenlayout.xrandr.Transition(server)
-# FIXME: decide where
-# screenlayout.widget.main.TransitionWidget._make_transition_nonempty can live
-# to be available here
-print " ".join(shell_quote(x) for x in ["xrandr"] + transition.serialize())
+transition.freeze_state(FreezeLevel.ALL)
+print(" ".join(shell_quote(x) for x in ["xrandr"] + transition.serialize()))

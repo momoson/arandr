@@ -126,5 +126,14 @@ class TransitionOutputForMode(base.BaseTransitionOutput):
                 configuredmode.width,
                 configuredmode.height,
                 )
+
+    def freeze_state(self, level=base.FreezeLevel.ALL):
+        super().freeze_state(level)
+
+        if self.server_output.active:
+            self.set_any_mode()
+        else:
+            self.off = True
+
 class TransitionForMode(base.BaseTransition):
     Output = TransitionOutputForMode
