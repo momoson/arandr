@@ -35,21 +35,11 @@ import os.path
 import io
 import re
 import binascii
+import shlex
 
 from .. import executions
 from ..modifying import modifying
 
-# like shlex._find_unsafe, but for bytes
-_find_unsafe = re.compile(rb'[^\w@%+=:,./-]', re.ASCII).search
-# like shlex.quote, but for bytes
-def _quote(s):
-    if not isinstance(s, bytes):
-        s = str(s).encode('ascii')
-    if not s:
-        return b"''"
-    if _find_unsafe(s) is None:
-        return s
-    return b"'" + s.replace(b"'", b"'\"'\"'") + b"'"
 def _shell_unsplit(args):
     """Merge a list of arguments into a command line
 
@@ -62,14 +52,9 @@ def _shell_unsplit(args):
 
     >>> subprocess.Popen(_shell_unsplit(args), shell=True)
 
-    . It is pretty lenient as far as the string types are concerned (byteas are
-    accepted as well as strings), because Popen behaves that way, but does not
-    follow Popen's attempts to use filesystem encodings to the arguments (after
-    all, they might not be files), and instead refuses to encode strings that
-    are not plain ASCII. (For reference, the Popen strings are passed through
-    PyUnicode_EncodeFSDefault).
+    . It only accepts strings as argument types.
     """
-    return b" ".join(_quote(s) for s in args)
+    return " ".join(shlex.quote(s) for s in args)
 
 # helper for zipfile names
 def b2a(data):
@@ -201,12 +186,12 @@ class SSHContext(StackingContext):
                 if k[0] in string.digits or any(_k not in string.ascii_letters + string.digits + '_' for _k in k):
                     raise ValueError("The environment variable %r can not be set over SSH."%k)
 
-                prefix_args.append(_quote(k) + b'=' + _quote(v) + b' ')
+                prefix_args.append(shlex.quote(k) + b'=' + shlex.quote(v) + b' ')
             if shell == True:
                 # sending it through *another* shell because when shell=True,
                 # the user can expect the environment variables to already be
                 # set when the expression is evaluated.
-                args = b"".join(prefix_args) + b" exec sh -c " + _quote(args)
+                args = b"".join(prefix_args) + b" exec sh -c " + shlex.quote(args)
             else:
                 args = b"".join(prefix_args) + args
 
