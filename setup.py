@@ -133,9 +133,6 @@ class TestCommand(NoOptionCommand):
     description = "Run all the unit- and doctests in this package"
 
     def run(self):
-        import screenlayout.modifying
-        screenlayout.modifying.test(screenlayout.modifying)
-
         # resolve problems between unittest and distutils in a brutal way
         import sys
         sys.argv = [sys.argv[0]]

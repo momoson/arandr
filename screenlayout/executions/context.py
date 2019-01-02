@@ -17,13 +17,16 @@
 """Execution contexts
 
 This module provides context objects, which define where and how to run a
-program. Contexts can be as trivial as adding environment variables, but can
+program.
+
+Contexts do not expose the full functionality of subprocess.Popen, but only
+have a .run() method that accepts args and env, and returns the unchecked
+CompletedProcess.
+
+Contexts can be as trivial as adding environment variables, but can
 just as well redirect execution to another machine by means of SSH (Secure
 Shell).
-
-Context objects are subprocess.Popen factories, either by being a
-subprocess.Popen subclass, or by behaving sufficiently similar (ie, they can be
-called with Popen's args)."""
+"""
 
 import logging
 import string
@@ -38,7 +41,6 @@ import binascii
 import shlex
 
 from .. import executions
-from ..modifying import modifying
 
 def _shell_unsplit(args):
     """Merge a list of arguments into a command line
@@ -58,11 +60,21 @@ def _shell_unsplit(args):
 
 # helper for zipfile names
 def b2a(data):
-    return binascii.b2a_qp(data).decode('ascii').replace('=\n', '').replace('/', '=2F')
+    return binascii.b2a_qp(data.encode('utf8')).decode('ascii').replace('=\n', '').replace('/', '=2F')
 
-local = subprocess.Popen
+class Context:
+    """Interface definition for contexts"""
 
-class StackingContext(object):
+    def run(self, args, env=None):
+        raise NotImplementedError
+
+class Local(Context):
+    def run(self, args, env=None):
+        return subprocess.run(args, env=env, capture_output=True)
+
+local = Local()
+
+class StackingContext(Context):
     """Base class for contexts that delegate execution to an
     `underlying_context`"""
     def __init__(self, underlying_context=local):
@@ -77,13 +89,12 @@ class WithEnvironment(StackingContext):
         self.preset_environment = preset_environment
         super(WithEnvironment, self).__init__(underlying_context)
 
-    @modifying(lambda self: self.underlying_context, eval_from_self=True)
-    def __call__(self, super, env):
+    def run(self, args, env=None):
         if env is not None:
             env = dict(env, **self.preset_environment)
         else:
             env = self.preset_environment
-        return super(env=env)
+        return self.underlying_context.run(args, env)
 
 class WithXEnvironment(WithEnvironment):
     """Context that, upon execution of the first command, tries to autodetect a
@@ -98,14 +109,14 @@ class WithXEnvironment(WithEnvironment):
         self.preset_environment = None
         StackingContext.__init__(self, underlying_context)
 
-    @modifying(lambda self: super(WithXEnvironment, self).__call__, eval_from_self=True)
-    def __call__(self, super):
+    def run(self, args, env=None):
         if self.preset_environment is None:
             self.determine_environment()
 
-        return super()
+        return self.underlying_context.run(args)
 
     def determine_environment(self):
+        # FIXME
         displays = executions.ManagedExecution('grep --no-filename --text --null-data "^DISPLAY=" /proc/*/environ 2>/dev/null |sort --zero-terminated --unique', shell=True, context=self.underlying_context).read().decode('ascii').split("\0")
 
         displays = (line.split('=', 1)[1] for line in displays if line)
@@ -132,11 +143,10 @@ class InDirectory(StackingContext):
     """Enforce a working directory setting"""
     def __init__(self, cwd, underlying_context=local):
         self.cwd = cwd
-        super(InDirectory, self).__init__(underlying_context)
+        super().__init__(underlying_context)
 
-    @modifying(lambda self: self.underlying_context, eval_from_self=True)
-    def __call__(self, super):
-        return super(cwd=self.cwd)
+    def run(self, args, env=None):
+        return self.underlying_context.run(["sh", "-c", "cd " + shlex.quote(self.cwd) + " && " + _shell_unsplit(args)], env)
 
 class SSHContext(StackingContext):
     """Context that executes the process on another machine.
@@ -161,24 +171,12 @@ class SSHContext(StackingContext):
         self.ssh_args = ssh_args
         super(SSHContext, self).__init__(underlying_context)
 
-    @modifying(lambda self: self.underlying_context, eval_from_self=True)
-    def __call__(self, super, args, env, shell, cwd, executable):
-        if executable:
-            # i'm afraid this can't be implemented easily; there might be a way
-            # to wrap the command in *another* shell execution and make that
-            # shell do the trick
-            raise NotImplementedError("The executable option is not usable with an SSHContext.")
-        if cwd:
-            # should be rather easy to implement
-            raise NotImplementedError("The cwd option is not usable with an SSHContext.")
-        if not shell:
-            # with ssh, there is no way of passing individual arguments;
-            # rather, arguments are always passed to be shell execued
-            args = _shell_unsplit(args)
+    def run(self, args, env=None):
+        args = _shell_unsplit(args)
 
         if env:
             prefix_args = []
-            for (k, v) in env.items() if env is not None else ():
+            for (k, v) in env.items():
                 # definition as given in dash man page:
                 #     Variables set by the user must have a name consisting solely
                 #     of alphabetics, numerics, and underscores - the first of
@@ -186,16 +184,10 @@ class SSHContext(StackingContext):
                 if k[0] in string.digits or any(_k not in string.ascii_letters + string.digits + '_' for _k in k):
                     raise ValueError("The environment variable %r can not be set over SSH."%k)
 
-                prefix_args.append(shlex.quote(k) + b'=' + shlex.quote(v) + b' ')
-            if shell == True:
-                # sending it through *another* shell because when shell=True,
-                # the user can expect the environment variables to already be
-                # set when the expression is evaluated.
-                args = b"".join(prefix_args) + b" exec sh -c " + shlex.quote(args)
-            else:
-                args = b"".join(prefix_args) + args
+                prefix_args.append(shlex.quote(k) + '=' + shlex.quote(v) + ' ')
+            args = "".join(prefix_args) + args
 
-        return super(args=(self.ssh_executable,) + self.ssh_args + (self.host, '--', args), shell=False, env=None)
+        return self.underlying_context.run((self.ssh_executable,) + self.ssh_args + (self.host, '--', args))
 
 class SimpleLoggingContext(StackingContext):
     """Logs only command execution, no results"""
@@ -203,10 +195,9 @@ class SimpleLoggingContext(StackingContext):
         self.logmethod = logmethod
         super(SimpleLoggingContext, self).__init__(underlying_context)
 
-    @modifying(lambda self: self.underlying_context, eval_from_self=True)
-    def __call__(self, super, args, env):
+    def run(self, args, env=None):
         self.logmethod("Execution started: %r within environment %r on %r"%(args, env, self.underlying_context))
-        return super()
+        return self.underlying_context.run(args, env)
 
 class ZipfileLoggingContext(StackingContext):
     """Logs all executed commands into a ZIP file state machine. For a
@@ -217,20 +208,7 @@ class ZipfileLoggingContext(StackingContext):
     at all (resulting in a flat ZIP file). Otherwise, states will be
     continuously numbered, and the ZIP file can only be replayed in the same
     sequence. More fine-grained control is possible by passing a next_state
-    argument to the process generation.
-
-    The context has to be closed using its close() method.
-
-    Caveat: This context must be used inside a ManagedExecution (or anything
-    else that calls the process's _finished_execution(stdout_data, stderr_data,
-    retcode) after the execution). The reason for this hack is that it's hard
-    to emulate a 'tee' in the stdout/stderr pair: As long as stdout/stderr are
-    just accessed with .read(), it could be emulated by creating a file-like
-    object that catches the read function, but when the process's
-    .communicate() is used, it reads the files by means of os.read(fileno), and
-    emulating that would mean either overriding the complete .communicate()
-    method or creating a os-level file like object.
-    """
+    argument to the run method."""
 
     def __init__(self, zipfilename, store_states=True, underlying_context=local):
         self.zipfile = zipfile.ZipFile(zipfilename, 'w')
@@ -239,8 +217,7 @@ class ZipfileLoggingContext(StackingContext):
         self._incrementing_state_number = 0
         super(ZipfileLoggingContext, self).__init__(underlying_context)
 
-    @modifying(lambda self: self.underlying_context, eval_from_self=True, hide=['next_state'])
-    def __call__(self, super, args, shell, next_state=None):
+    def run(self, args, env=None, *, next_state=None):
         base_state = self.current_state
         if next_state is None:
             if self.store_states:
@@ -250,19 +227,20 @@ class ZipfileLoggingContext(StackingContext):
                 next_state = self.current_state
         self.current_state = next_state
 
-        real_process = super()
+        real_result = self.underlying_context.run(args)
 
-        if shell:
-            if isinstance(args, bytes):
-                condensed_args = args
-            else:
-                condensed_args = args.encode('ascii')
-        else:
-            condensed_args = _shell_unsplit(args)
+        condensed_args = _shell_unsplit(args)
 
-        real_process._finished_execution = lambda stdout, stderr, retcode: self.store(condensed_args, stdout, stderr, retcode, base_state, next_state)
+        self.store(
+                condensed_args,
+                real_result.stdout,
+                real_result.stderr,
+                real_result.returncode,
+                base_state,
+                next_state,
+                )
 
-        return real_process
+        return real_result
 
     def store(self, args, stdout, stderr, returncode, base_state, next_state):
         name = base_state + b2a(args)
@@ -278,10 +256,7 @@ class ZipfileLoggingContext(StackingContext):
     def close(self):
         self.zipfile.close()
 
-    def __del__(self):
-        self.close()
-
-class ZipfileContext(object):
+class ZipfileContext(Context):
     """Looks up cached command results from a ZIP file state machine.
 
     File format description
@@ -319,31 +294,19 @@ class ZipfileContext(object):
         self.state_prefix = ""
         self.zipfile = zipfile.ZipFile(zipfilename)
 
-    # not using @modifying here on purpose: whenever someone uses a strange
-    # argument, i want to know it and fail. close_fds can be ignored safely.
-    def __call__(self, args, shell=False, stdout=None, stderr=None, close_fds=False):
-        if stdout is not subprocess.PIPE or stderr is not subprocess.PIPE:
-            # a straightforward implementation would just write the whole
-            # contents there, but that might block while writing, and it would
-            # block the very process that is supposed to read in order to get
-            # the blocking away.
-            raise NotImplementedError("Using any other stdout/stderr options than subprocess.PIPE is not supported yet.")
+    def run(self, args, env=None):
+        if env is not None:
+            raise ValueError("The ZipfileContext file format does not allow environments")
 
-        if shell is False:
-            filename = _shell_unsplit(args)
-        else:
-            if not isinstance(args, bytes):
-                filename = args.encode('ascii')
-            else:
-                args = filename
+        filename = _shell_unsplit(args)
 
         filename = self.state_prefix + b2a(filename)
 
-        stdout = self.zipfile.open(filename + ".out")
+        stdout = self.zipfile.open(filename + ".out").read()
         try:
-            stderr = self.zipfile.open(filename + ".err")
+            stderr = self.zipfile.open(filename + ".err").read()
         except KeyError:
-            stderr = io.BytesIO(b"")
+            stderr = b""
         try:
             returncode = int(self.zipfile.open(filename + ".exit").read())
         except KeyError:
@@ -356,14 +319,9 @@ class ZipfileContext(object):
 
         return self.VirtualProcess(stdout, stderr, returncode)
 
-    class VirtualProcess(object):
+    class VirtualProcess:
+        """Similar to subprocess.CompletedProcess"""
         def __init__(self, stdout, stderr, returncode):
             self.stdout = stdout
             self.stderr = stderr
             self.returncode = returncode
-
-        def wait(self):
-            return self.returncode
-
-        def communicate(self):
-            return self.stdout.read(), self.stderr.read()

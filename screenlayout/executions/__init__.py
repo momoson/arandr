@@ -17,61 +17,46 @@
 """Executions module
 
 The execution module provides the infrastructure for running external programs
-that don't need data from stdin.
+that don't need data from stdin as executions context.
 
-In extension of the subprocess module, this contains helper routines for
-capturing stdout, watching stderr, nonblocking execution (FIXME: not yet) and
-execution contexts (see executions.context)."""
+This will likely go away when its users are refactored to use
+CompletedProcess.check_returncode()."""
 
 import warnings
 import subprocess
 from subprocess import CalledProcessError # explicitly imported so users don't have to import subprocess to catch exceptions
 
-class ManagedExecution(object):
+class ManagedExecution:
     # not context=contexts.local, because that would create a circular dependency between the modules
-    def __init__(self, argv, context=subprocess.Popen, shell=False):
-        # i don't recommend using shell=True, but it's useful for testing the ssh wrapper
-        self.process = context(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, shell=shell)
+    def __init__(self, argv, context):
+        self.process = context.run(argv)
 
         self.argv = argv # only needed for __str__ and __repr__, but very useful there
 
     def read_paranoid(self):
         """Report the process' result, and assume that not only the return code
         was 0, but also that stderr was empty."""
-        stdout, stderr, returncode = self.read_with_error()
 
-        if returncode != 0 or stderr:
-            raise CalledProcessError(self.process.returncode, self, stderr)
+        self.process.check_returncode()
+        if self.process.stderr:
+            raise CalledProcessError(self.process.returncode, self, self.process.stdout, self.process.stderr)
 
-        return stdout
+        return self.process.stdout
 
     def read(self):
         # currently, this does hardly more than subprocess.check_output.
         """Report the process' result, and assume that the return code was 0.
         If something was printed to stderr, a warning is issued."""
 
-        stdout, stderr, returncode = self.read_with_error()
+        self.process.check_returncode()
 
-        if returncode != 0:
-            raise CalledProcessError(self.process.returncode, self, stderr)
+        if self.process.stderr:
+            warnings.warn("%s had output to stderr, but did not report an error (Message was: %r)"%(self, self.process.stderr))
 
-        if stderr:
-            warnings.warn("%s had output to stderr, but did not report an error (Message was: %r)"%(self, stderr))
-
-        return stdout
+        return self.process.stdout
 
     def read_with_error(self):
-        stdout, stderr = self.process.communicate()
-
-        retcode = self.process.returncode
-
-        # this is a hack, but one that's not easy to enhance. this line is only
-        # used for context.ZipfileLoggingContext, see the comments there.
-        if hasattr(self.process, '_finished_execution'):
-            self.process._finished_execution(stdout, stderr, retcode)
-            del self.process._finished_execution
-
-        return stdout, stderr, retcode
+        return self.process.stdout, self.process.stderr, self.process.returncode
 
     def __str__(self):
         return "Process %r"%(self.argv,)
