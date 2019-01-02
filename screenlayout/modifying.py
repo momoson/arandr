@@ -104,7 +104,7 @@ def evalargs(func, *positional, **named):
     >>> f(1, a=5)
     Traceback (most recent call last):
       ...
-    TypeError: f() got multiple values for keyword argument 'a'
+    TypeError: f() got multiple values for argument 'a'
 
     Caveat: As an anticipation of PEP 3113, tuple unpacking is not supported.
     The author acknowledges that he now finally sees the reasons behind that
@@ -251,7 +251,7 @@ def modifying(original_function, eval_from_self=False, hide=()):
     keyword arguments that override the original arguments.
 
     >>> def f(a, b, c, d="d", e="e"):
-    ...     print c, d
+    ...     print(c, d)
     >>>
     >>> @modifying(f)
     ... def new_f(super, c, e):
@@ -272,11 +272,10 @@ def modifying(original_function, eval_from_self=False, hide=()):
     ...         self.b = b
     >>> @modifying(A)
     ... def A_factory(super, c):
-    ...     print "Creating a %r style A"%c
+    ...     print("Creating a %r style A"%c)
     ...     return super()
-    >>> A_factory(1, 2)
+    >>> _ = A_factory(1, 2)
     Creating a 'c' style A
-    <....A object at ...>
 
     ... and for decorating methods:
 
