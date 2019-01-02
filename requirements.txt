@@ -1,0 +1,4 @@
+# for generating the man page
+docutils
+# For the GTK user interface; having GTK itself installed is probably out of pip's scope
+PyGObject
