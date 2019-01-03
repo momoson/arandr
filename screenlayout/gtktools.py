@@ -42,7 +42,7 @@ class CategoryDefinitionWidget(Gtk.Table):
         [
             ("some category", "What:", "Spam"),
             ("some category", "How much:", "very much"),
-            ("another category", Gtk.Label("Widget:"), Gtk.Entry()),
+            ("another category", Gtk.Label(label="Widget:"), Gtk.Entry()),
             ]
     will look like this:
 
@@ -55,7 +55,7 @@ class CategoryDefinitionWidget(Gtk.Table):
     __gtype_name__ = "CategoryDefinitionWidget"
 
     def __init__(self, items=None):
-        super(CategoryDefinitionWidget, self).__init__(columns=2)
+        super(CategoryDefinitionWidget, self).__init__(n_columns=2)
 
         self.props.border_width = 6 # concerning paddings: the 6 pixels spread through the layouting should add up to the 12px left, 12px between, and 12px right of each column
 
@@ -80,20 +80,29 @@ class CategoryDefinitionWidget(Gtk.Table):
 
             # conversion to widgets if required
             if not isinstance(label, Gtk.Widget):
-                label = Gtk.Label(label)
+                label = Gtk.Label(label=label)
                 label.props.xalign = 0
             if not isinstance(data, Gtk.Widget):
-                data = Gtk.Label(data)
+                data = Gtk.Label(label=data)
                 data.props.xalign = 0
 
-            indent = Gtk.Alignment()
-            indent.set_padding(0, 0, 12, 0)
-            indent.add(label)
+            label.props.margin_left = 12
 
             # adding to grid
-            self.attach(indent, 0, 1, row, row+1)
+            self.attach(label, 0, 1, row, row+1)
             self.attach(data, 1, 2, row, row+1)
 
             row += 1
 
         self.show_all()
+
+if __name__ == "__main__":
+    w = Gtk.Window()
+    w.add(CategoryDefinitionWidget([
+            ("some category", "What:", "Spam"),
+            ("some category", "How much:", "very much"),
+            ("another category", Gtk.Label(label="Widget:"), Gtk.Entry()),
+            ]))
+    w.show_all()
+    w.connect('destroy', Gtk.main_quit)
+    Gtk.main()
