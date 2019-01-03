@@ -48,11 +48,11 @@ def _shell_unsplit(args):
     This is like an inverse of shlex.split, and more precisely tries to behave
     in such a way that
 
-    >>> subprocess.Popen(args)
+    >>> subprocess.Popen(args) # doctest:+SKIP
 
     is equivalent to
 
-    >>> subprocess.Popen(_shell_unsplit(args), shell=True)
+    >>> subprocess.Popen(_shell_unsplit(args), shell=True) # doctest:+SKIP
 
     . It only accepts strings as argument types.
     """
