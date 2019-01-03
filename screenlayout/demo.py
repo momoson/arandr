@@ -47,7 +47,7 @@ def update_tabs(widget, notebook):
 
     for output_name in outputs:
         tabwidget = TransitionOutputWidget(widget, output_name)
-        notebook.insert_page(tabwidget, tab_label=Gtk.Label(output_name), position=-1)
+        notebook.insert_page(tabwidget, tab_label=Gtk.Label(label=output_name), position=-1)
         current_tabs.append(tabwidget)
         tabwidget.connect('changed', lambda *args: widget.emit('changed'))
         tabwidget.update()
@@ -67,12 +67,14 @@ def main(do_run=True):
     r.connect('changed', update_tabs, output_properties)
     r.emit('changed')
 
-    b1 = Gtk.Button(stock="gtk-refresh")
+    b1 = Gtk.Button.new_with_mnemonic(_("_Refresh"))
+    # FIXME: not supported easily in GTK3 any more
+    b1.props.image = Gtk.Image(icon_name="view-refresh")
     b1.connect('clicked', lambda *args: r.load_from_x())
 
-    b2 = Gtk.Button("Preview command")
-    b2.props.image = Gtk.Image()
-    b2.props.image.props.icon_name = "gtk-find"
+    b2 = Gtk.Button(label="Preview command")
+    # FIXME: not supported easily in GTK3 any more
+    b2.props.image = Gtk.Image(icon_name="gtk-find")
     def preview(*args):
         d = Gtk.Dialog("Command preview", w, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, (Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
         l = Gtk.Label(r.save_to_string())
@@ -82,7 +84,9 @@ def main(do_run=True):
         d.destroy()
     b2.connect('clicked', preview)
 
-    b3 = Gtk.Button(stock='gtk-apply')
+    b3 = Gtk.Button.new_with_mnemonic(label="_Apply")
+    # FIXME: not supported easily in GTK3 any more
+    b3.props.image = Gtk.Image(icon_name="gtk-apply")
     b3.connect('clicked', lambda *args: r.save_to_x())
 
     v = Gtk.VBox()

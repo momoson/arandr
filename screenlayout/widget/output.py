@@ -69,7 +69,7 @@ class TransitionOutputWidget(Gtk.Notebook):
             ])
 
         for t in self.tabs.values():
-            self.insert_page(t, t.get_label(), -1)
+            self.insert_page(t, tab_label=t.get_label(), position=-1)
             t.outputwidget = self
 
     def update(self):
