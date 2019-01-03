@@ -25,7 +25,8 @@ import gzip
 import docutils.core
 import docutils.writers.manpage
 
-from distutils.core import setup
+from setuptools import setup
+
 from distutils.dep_util import newer
 from distutils.log import info, warn
 from distutils.cmd import Command
