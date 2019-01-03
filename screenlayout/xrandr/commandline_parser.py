@@ -4,7 +4,7 @@ from .helpers import Transformation
 import argparse
 from pprint import pprint
 
-class GroupingMixin(object):
+class GroupingMixin:
     group_to = property(lambda self: self.group_by + '_grouped')
 
     def __call__(self, parser, namespace, values, option_string=None):

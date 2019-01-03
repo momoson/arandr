@@ -29,7 +29,7 @@ from ..auxiliary import Position
 import gettext
 gettext.install('arandr')
 
-class Tab(object):
+class Tab:
     def _set_outputwidget(self, new_value):
         self._outputwidget = weakref.ref(new_value)
     outputwidget = property(lambda self: self._outputwidget(), _set_outputwidget)
@@ -264,7 +264,7 @@ class TransitionOutputWidget(Gtk.Notebook):
                 self.outputwidget.transition_output.named_mode = selected_collection.name
                 self.outputwidget.emit('changed')
 
-        class ModeCollectionByName(object):
+        class ModeCollectionByName:
             def __init__(self, name, modes):
                 self.name = name
                 self.modes = modes

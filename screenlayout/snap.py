@@ -16,7 +16,7 @@
 
 from .auxiliary import Position
 
-class Snap(object):
+class Snap:
     """Snap-to-edges manager"""
     def __init__(self, size, tolerance, geometries=[]):
         self.tolerance = tolerance

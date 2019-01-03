@@ -26,14 +26,14 @@ class FreezeLevel(enum.Enum):
     # Does "even properties" make sense?
     ALL = 100
 
-class PredictedServer(object):
+class PredictedServer:
     def __init__(self, original_server):
         for k,v in vars(original_server).items():
             if k == 'context':
                 continue # a predicted server can't do anything, it's just for information
             setattr(self, k, v)
 
-class BaseTransitionOutput(object):
+class BaseTransitionOutput:
     transition = property(lambda self: self._transition())
     server_output = property(lambda self: self.transition.server.outputs[self.name])
     predicted_server_output = property(lambda self: self.transition.predicted_server.outputs[self.name])
@@ -75,7 +75,7 @@ class BaseTransitionOutput(object):
 
     def __repr__(self):
         return "<%s %r of %s>"%(type(self).__name__, self.name, self.transition)
-class BaseTransition(object):
+class BaseTransition:
     """Transition instructions for one X server's state to a new one; basically
     an internal representation of an ``xrandr`` invocation. See
     ``README.development`` for details.

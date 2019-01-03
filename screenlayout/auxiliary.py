@@ -52,7 +52,7 @@ class Size(tuple):
     def __str__(self):
         return "%dx%d"%self
 
-class NamedSize(object):
+class NamedSize:
     """Object that behaves like a size, but has an additional name attribute"""
     def __init__(self, size, name):
         self._size = size

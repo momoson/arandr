@@ -69,7 +69,7 @@ def actioncallback(function):
     return wrapper
 
 
-class Application(object):
+class Application:
     uixml = """
     <ui>
         <menubar name="MenuBar">

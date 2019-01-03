@@ -3,7 +3,7 @@ from math import sqrt
 def vector(start, end):
     return tuple(b - a for (a, b) in zip(start, end))
 
-class Minimum(object):
+class Minimum:
     """Tracker for the minimum of a value"""
     def __init__(self):
         self.value = None

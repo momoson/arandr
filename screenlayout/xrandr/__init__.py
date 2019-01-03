@@ -43,7 +43,7 @@ __all__ = ['Server', 'Transition']
 
 
 
-class OldStuff(object):
+class OldStuff:
     # old stuff that is lingering in the xrandr backend rewrite
 
     def load_from_string(self, data):

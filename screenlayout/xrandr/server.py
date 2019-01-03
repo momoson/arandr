@@ -28,7 +28,7 @@ from ..polygon import ConvexPolygon
 
 from .helpers import Mode, asciibytes, utf8bytes
 
-class Server(object):
+class Server:
     def __init__(self, context=None, force_version=False):
         """Create proxy object and check for xrandr at the given
         executions.context. Fail with untested versions unless `force_version`
@@ -150,7 +150,7 @@ class Server(object):
 
     #################### sub objects ####################
 
-    class Version(object):
+    class Version:
         """Parser and representation of xrandr versions, handling both program
         and server version."""
 
@@ -276,7 +276,7 @@ class Server(object):
         def __repr__(self):
             return "<%s %r (%#x) %s%s%s>"%(type(self).__name__, self.name, self.id, tuple.__repr__(self), " preferred" if self.is_preferred else "", " current" if self.is_current else "")
 
-    class Output(object):
+    class Output:
         """Parser and representation of an output of a Server"""
 
         def __init__(self, headline, details, primary_callback):
