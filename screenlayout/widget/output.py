@@ -21,9 +21,7 @@ from collections import OrderedDict
 from math import sqrt
 import binascii
 
-from gi.repository import Gtk, GObject
-
-from ..gtktools import CategoryDefinitionWidget
+from ..gtktools import CategoryDefinitionWidget, Gtk, GObject
 from ..xrandr.constants import ConnectionStatus, SubpixelOrder
 
 from ..auxiliary import Position

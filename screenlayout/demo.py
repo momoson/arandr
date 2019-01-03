@@ -22,9 +22,7 @@ from IPython or anything else that runs a GTK main loop. In that case, you can
 fetch the current tab widgets from the `current_tabs` global variable.
 """
 
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from .gtktools import Gtk
 
 from .widget import TransitionWidget, TransitionOutputWidget
 
