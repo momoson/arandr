@@ -75,7 +75,3 @@ class ConvexPolygon(list):
             return 0 # point is inside
         else:
             return min_positive.value
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
