@@ -65,6 +65,7 @@ class TransitionOutputWidget(Gtk.Notebook):
             ('base', self.BaseTab()),
             ('position', self.PositionTab()),
             ('edid', self.EDIDTab()),
+            ('properties', self.PropertiesTab()),
             ('automation', self.AutomationTab()),
             ])
 
@@ -484,3 +485,32 @@ class TransitionOutputWidget(Gtk.Notebook):
             self.explicit_primary.props.active = to.transition.primary is not None
 
             # FIXME: disable stuff when output can't be enabled, compare basic tab's .active
+
+    class PropertiesTab(CategoryDefinitionWidget, Tab):
+        OTHER = _("Other properties")
+        READONLY = _("Read-only properties")
+
+        def __init__(self):
+            super().__init__()
+            self.set_items([])
+
+        @staticmethod
+        def get_label():
+            return Gtk.Label(_("Properties"))
+
+        def update(self):
+            other = []
+            readonly = []
+
+            for (key, (value, supported)) in self.outputwidget.server_output.properties.items():
+                if key == 'EDID':
+                    continue
+                if supported is not None:
+                    other.append((self.OTHER, key, "%s\nsupported: %s" % (value, supported)))
+                else:
+                    readonly.append((self.READONLY, key, value))
+
+            if other or readonly:
+                self.set_items(other + readonly)
+            else:
+                self.set_items([(self.OTHER, _("No properties found"), "")])
