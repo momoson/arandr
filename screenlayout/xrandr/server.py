@@ -102,7 +102,7 @@ class Server:
 
             primary = [] # hack to get the information about an output being primary out and set it later
             def setpri(): primary.append(True)
-            output = self.Output(headline, details, setpri)
+            output = self.Output(headline, details, setpri, self.version)
             if primary:
                 self.primary = output
             self.outputs[output.name] = output
@@ -279,9 +279,11 @@ class Server:
     class Output:
         """Parser and representation of an output of a Server"""
 
-        def __init__(self, headline, details, primary_callback):
+        def __init__(self, headline, details, primary_callback, version):
             self.assigned_modes = [] # filled with modes by the server parser, as it keeps track of the modes
             self.properties = {}
+
+            self.version = version
 
             self._parse_headline(headline, primary_callback)
             self._parse_details(details)
@@ -373,11 +375,11 @@ class Server:
 
             if label.lower() in self.simple_details:
                 mechanism = self.simple_details[label.lower()]
-                if label.lower() == 'crtcs' and len(detail) != 1 and all(b'????' in d for d in detail[1:]):
-                    # in 1.2.0, properties were supported so rudimentarily not
-                    # even their values could be shown, and were outputted in a
-                    # way that is incompatible with later versions.
-                    warnings.warn("Old xrandr version (< 1.2.1), ignoring properties")
+                if not self.version.at_least_program_version(1, 3):
+                    # Technically that's older versions than 1.2.1, but they
+                    # don't announce patch levels yet, and are really old
+                    # anyway
+                    warnings.warn("Old xrandr version (< 1.3.0), ignoring some details")
                     detail = detail[:1]
                 try:
                     data, = detail
@@ -399,7 +401,10 @@ class Server:
                 pass # FIXME
 
             else:
-                self._parse_property_detail(label, detail)
+                if self.version.at_least_program_version(1, 4, 1):
+                    self._parse_property_detail(label, detail)
+                else:
+                    warnings.warn("Old xrandr version (< 1.4.1), ignoring properties")
 
         def _parse_property_detail(self, label, detail):
             # FIXME what about type=XA_ATOM format=32? (They were special back
