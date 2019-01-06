@@ -189,7 +189,7 @@ class Server:
                 else:
                     self.program_version = '< 1.2'
 
-        def at_least_program_version(self, major, minor):
+        def at_least_program_version(self, major, minor, patch=0):
             if major < 1:
                 return True
 
@@ -204,7 +204,7 @@ class Server:
 
             parsed_version = tuple(map(int, self.program_version.split(".")))
 
-            return (major, minor, 0) <= parsed_version
+            return (major, minor, patch) <= parsed_version
 
         def __repr__(self):
             return "<Version server %r, program %r>"%(self.server_version, self.program_version)
