@@ -432,10 +432,8 @@ class TransitionWidget(Gtk.DrawingArea):
     #################### drag&drop ####################
 
     def setup_draganddrop(self):
-        self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [Gtk.TargetEntry.new('screenlayout-output', Gtk.TargetFlags.SAME_WIDGET, 0)], 0)
-        self.drag_dest_set(0, [Gtk.TargetEntry.new('screenlayout-output', Gtk.TargetFlags.SAME_WIDGET, 0)], 0)
-        #self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [], 0)
-        #self.drag_dest_set(0, [], 0)
+        self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [Gtk.TargetEntry.new('screenlayout-output', Gtk.TargetFlags.SAME_WIDGET, 0)], Gdk.DragAction.PRIVATE)
+        self.drag_dest_set(0, [Gtk.TargetEntry.new('screenlayout-output', Gtk.TargetFlags.SAME_WIDGET, 0)], Gdk.DragAction.PRIVATE)
 
         self._draggingfrom = None
         self._draggingfrom_pos = None
@@ -451,15 +449,20 @@ class TransitionWidget(Gtk.DrawingArea):
         try:
             output = self._get_point_active_output(*self._lastclick)
         except IndexError:
-            # FIXME: abort?
-            self.drag_source_set_icon_stock(Gtk.STOCK_CANCEL)
-            widget.emit('drag-failed', context, Gtk.DragResult.NO_TARGET)
-            return None
+            from gi.repository import GLib
+            # Still setting an icon because it flickers up
+            self.drag_source_set_icon_name('gtk-cancel')
+            # The cancellation would leave a floating window around if done in
+            # the begin handler
+            GLib.idle_add(lambda:
+                context.emit('cancel', Gdk.DragCancelReason.ERROR)
+                )
+            return True
 
         self._draggingoutput = output
         self._draggingfrom = self._lastclick
         self._draggingfrom_pos = output.position or output.predicted_server_output.geometry.position
-        self.drag_source_set_icon_stock(Gtk.STOCK_FULLSCREEN)
+        self.drag_source_set_icon_name('gtk-fullscreen')
 
         self._transition.predict_server()
 
