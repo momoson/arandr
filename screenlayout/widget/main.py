@@ -323,8 +323,8 @@ class TransitionWidget(Gtk.DrawingArea):
                 self._force_repaint()
         if event.button == Gdk.BUTTON_SECONDARY:
             m = self.get_contextmenu_for(undermouse)
-            m.show_all()
-            m.popup(None, None, None, None, event.button, event.time)
+            m.show_all() # not relevant in ARandR directly but in the demo when no menu is always visible
+            m.popup_at_pointer(event)
 
         self._lastclick = (event.x, event.y)
 

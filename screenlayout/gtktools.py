@@ -25,7 +25,7 @@ or form an own independent module in the style of sexy.
 
 # Import everything here to avoid having `import gi / gi.require / import` everywhere
 import gi
-gi.require_version('Gtk', '3.0')
+gi.require_version('Gtk', '3.0') # API version; requiring 3.22 for Gtk.Menu.popup_at_pointer
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import Gtk, Pango, PangoCairo, Gdk, GObject
 
