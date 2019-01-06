@@ -21,6 +21,11 @@
 import sys
 import gettext
 
+# Enable deprecation warnings in development situation
+
+import warnings
+warnings.simplefilter("default")
+
 # monkey patch gettext for local execution
 
 if sys.argv[0].startswith('./'):
