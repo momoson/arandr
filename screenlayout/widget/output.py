@@ -49,7 +49,7 @@ class TransitionOutputWidget(Gtk.Notebook):
     """
 
     __gsignals__ = {
-            'changed':(GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE, ()),
+            'changed':(GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE, ()),
             }
 
     def __init__(self, main_widget, output_name):

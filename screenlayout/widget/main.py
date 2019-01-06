@@ -32,7 +32,7 @@ gettext.install('arandr')
 
 class TransitionWidget(Gtk.DrawingArea):
     __gsignals__ = {
-            'changed':(GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE, ()),
+            'changed':(GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE, ()),
             }
 
     def __init__(self, factor=8, context=None, force_version=False):
@@ -368,7 +368,7 @@ class TransitionWidget(Gtk.DrawingArea):
 
     def refresh_contextmenu(self):
         for output in sorted(self._transition.outputs.values(), key=lambda o: o.name):
-            i = Gtk.MenuItem(output.name)
+            i = Gtk.MenuItem(label=output.name)
             i.props.submenu = self._contextmenu_for_output(output)
             self._main_contextmenu.append(i)
 
@@ -379,10 +379,10 @@ class TransitionWidget(Gtk.DrawingArea):
 
     def _contextmenu_for_output(self, output):
         m = Gtk.Menu()
-        details = Gtk.MenuItem(_("Details..."))
+        details = Gtk.MenuItem.new_with_mnemonic(_("_Details..."))
         m.append(details)
 
-        enabled = Gtk.CheckMenuItem(_("Active"))
+        enabled = Gtk.CheckMenuItem.new_with_mnemonic(_("_Active"))
         enabled.props.active = output.named_mode or output.precise_mode
         enabled.connect('activate', lambda menuitem: output.set_active)
 

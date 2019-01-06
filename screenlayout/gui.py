@@ -110,7 +110,7 @@ class Application:
         window.props.title = "Screen Layout Editor"
 
         # actions
-        actiongroup = Gtk.ActionGroup('default')
+        actiongroup = Gtk.ActionGroup(name='default')
         actiongroup.add_actions([
             ("Layout", None, _("_Layout")),
             ("New", Gtk.STOCK_NEW, None, None, None, self.do_new),
