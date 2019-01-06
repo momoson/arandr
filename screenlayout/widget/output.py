@@ -505,8 +505,10 @@ class TransitionOutputWidget(Gtk.Notebook):
             for (key, (value, supported)) in self.outputwidget.server_output.properties.items():
                 if key == 'EDID':
                     continue
-                if supported is not None:
-                    other.append((self.OTHER, key, "%s\nsupported: %s" % (value, supported)))
+                if isinstance(supported, list):
+                    other.append((self.OTHER, key, "%s\nsupported: %s" % (value, ", ".join(supported))))
+                elif isinstance(supported, range):
+                    other.append((self.OTHER, key, "%s\nsupported: %s to %s" % (value, supported.start, supported.stop - 1)))
                 else:
                     readonly.append((self.READONLY, key, value))
 

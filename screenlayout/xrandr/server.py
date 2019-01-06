@@ -401,50 +401,62 @@ class Server:
             else:
                 self._parse_property_detail(label, detail)
 
-        INTEGER_DETAIL_EXPRESSION = re.compile(b'^ +(?P<decimal>-?[0-9]+) +\(0x(?P<hex>[0-9a-fA-F]+)\)'
-                b'(\trange: +\((?P<min>-?[0-9]+),(?P<max>-?[0-9]+)\))?$')
-
         def _parse_property_detail(self, label, detail):
-            if detail[0] in (b'', b' '):
-                data = binascii.a2b_hex(b"".join([x.strip() for x in detail[1:]]))
-                changable = None
-            # counting \t against multi-value type=XA_ATOM format=32 data, not
-            # implemented for lack of examples and ways of setting it (?)
-            elif detail[0].startswith(b'\t') and detail[0].count(b'\t') == 1:
-                data = detail[0][detail[0].index(b'\t'):].strip()
-                changable = None
+            # FIXME what about type=XA_ATOM format=32? (They were special back
+            # in the \t times)
 
-                if len(detail) > 1:
-                    supported_string = b'\tsupported:'
-                    if detail[1].startswith(supported_string):
-                        detail[1] = detail[1][len(supported_string):]
-                        detail[2:] = [x.lstrip('\t') for x in detail[2:]]
-
-                        alldetail = b"".join(detail[1:])
-
-                        if any(len(x) % 13 != 0 for x in detail[1:]) or alldetail[::13].strip(b" ") != b"":
-                            warnings.warn("Can not read supported values for detail %r"%label)
-
-                        else:
-                            changable = [alldetail[i*13:(i+1)*13].strip() for i in range(len(alldetail)//13)]
-                    else:
-                        warnings.warn("Unhandled data in detail %r"%label)
-
-            elif len(detail) == 1 and self.INTEGER_DETAIL_EXPRESSION.match(detail[0]) is not None:
-                matched = self.INTEGER_DETAIL_EXPRESSION.match(detail[0]).groupdict()
-
-                data = int(matched['decimal'])
-                # ignoring hex value; it'd just be a hassle to make python give
-                # me a machine-dependent version of the negative integer, and
-                # really, why bother, what could possibly be wrong?
-                if matched['min'] is not None and matched['max'] is not None:
-                    changable = range(int(matched['min']), int(matched['max'])+1)
-                else:
-                    changable = None
-
-            else:
-                warnings.warn("Can not interpret detail %r"%label)
+            if label == 'EDID':
+                # special-case, pick out binary data without choice
+                try:
+                    data = binascii.a2b_hex("".join(d.decode('ascii').strip() for d in detail))
+                except ValueError:
+                    warnings.warn("Unable to deserialize data in %s" % label)
+                    return
+                self.properties[label] = (data, None)
                 return
+
+            data = detail[0].strip()
+            try:
+                data = data.decode('utf8')
+            except UnicodeDecodeError:
+                warnings.warn("Encoding error in detail %r" % label)
+                return
+            changable = None
+
+            # This 13-byte stuffed format has been used until <1.4.0; 1.4.0
+            # output was broken, and 1.4.1 is comma-separated. As 1.4.1 was
+            # released in 2013, it's reasonable to not support properties
+            # in older version.
+
+            if len(detail) > 1:
+                supported_string = b'\tsupported:'
+                range_string = b'\trange: ('
+                range_end = b')'
+
+                if detail[1].startswith(supported_string):
+                    detail[1] = detail[1][len(supported_string):]
+                    detail[2:] = [x.lstrip('\t') for x in detail[2:]]
+
+                    alldetail = b", ".join(detail[1:])
+
+                    try:
+                        changable = [d.strip().decode('utf8') for d in alldetail.split(b", ")]
+                    except UnicodeDecodeError:
+                        warnings.warn("Encoding error in supported items of %r" % label)
+                elif detail[1].startswith(range_string) and \
+                        detail[1].endswith(range_end) and len(detail) == 2:
+                    lowhigh = detail[1][len(range_string):-len(range_end)]
+
+                    try:
+                        low, _, high = lowhigh.decode('ascii').partition(', ')
+                        low = int(low)
+                        high = int(high)
+                    except (UnicodeDecodeError, ValueError) as e:
+                        warnings.warn("Failed to decode range in %r" % label)
+                    else:
+                        changable = range(low, high + 1)
+                else:
+                    warnings.warn("Unhandled data in detail %r"%label)
 
             self.properties[label] = (data, changable)
 
