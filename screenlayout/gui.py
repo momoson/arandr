@@ -24,7 +24,7 @@ from .executions import context as executions_context
 
 from .gtktools import Gtk
 
-from . import widget
+from . import widget, scripts
 
 from .meta import __version__, TRANSLATORS, COPYRIGHT, PROGRAMNAME, PROGRAMDESCRIPTION
 
@@ -153,7 +153,8 @@ class Application:
         # widget
         self.widget = widget.TransitionWidget(context=context, force_version=force_version)
         if file is None:
-            self.filetemplate = self.widget.load_from_x()
+            self.widget.load_from_x()
+            self.filetemplate = scripts.DEFAULTTEMPLATE
         else:
             self.filetemplate = self.widget.load_from_file(file)
 
@@ -188,7 +189,7 @@ class Application:
 
         script_editor = Gtk.TextView()
         script_buffer = script_editor.get_buffer()
-        script_buffer.set_text("\n".join(self.filetemplate))
+        script_buffer.set_text(self.filetemplate)
         script_editor.props.editable = False
 
         #wacom_options = Gtk.Label("FIXME")

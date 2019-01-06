@@ -19,8 +19,6 @@
 import gettext
 gettext.install('arandr')
 
-SHELLSHEBANG='#!/bin/sh'
-
 from .server import Server
 from .transition import Transition
 
