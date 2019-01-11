@@ -68,6 +68,9 @@ class Context:
     def run(self, args, env=None):
         raise NotImplementedError
 
+    def close(self):
+        pass
+
 class Local(Context):
     def run(self, args, env=None):
         return subprocess.run(args, env=env, capture_output=True)

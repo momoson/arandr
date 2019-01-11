@@ -19,6 +19,8 @@
 import os
 import argparse
 import inspect
+import contextlib
+
 from .executions import contextbuilder
 from .executions import context as executions_context
 
@@ -317,9 +319,10 @@ def main():
     if options.randr_display:
         context = executions_context.WithEnvironment({'DISPLAY': options.randr_display}, underlying_context=context)
 
-    a = Application(
-            file=options.savedfile,
-            context=context,
-            force_version=options.force_version
-            )
-    a.run()
+    with contextlib.closing(context) as context:
+        a = Application(
+                file=options.savedfile,
+                context=context,
+                force_version=options.force_version
+                )
+        a.run()
