@@ -17,7 +17,7 @@
 """Main GUI for ARandR"""
 
 import os
-import optparse
+import argparse
 import inspect
 from .executions import contextbuilder
 from .executions import context as executions_context
@@ -292,19 +292,21 @@ class Application:
         Gtk.main()
 
 def main():
-    p = optparse.OptionParser(usage="%prog [savedfile]", description="Another XRandrR GUI", version="%%prog %s"%__version__)
-    p.add_option('--randr-display', help='Use D as display for xrandr (but still show the GUI on the display from the environment; e.g. `localhost:10.0`)', metavar='D')
-    p.add_option('--remote-host', help="Connect to H using SSH for executing xrandr (remote control)", metavar='H')
-    p.add_option('--force-version', help='Even run with untested XRandR versions', action='store_true')
+    p = argparse.ArgumentParser(description="Another XRandrR GUI")
+    p.add_argument('--randr-display', help='Use D as display for xrandr (but still show the GUI on the display from the environment; e.g. `localhost:10.0`)', metavar='D')
+    p.add_argument('--remote-host', help="Connect to H using SSH for executing xrandr (remote control)", metavar='H')
+    p.add_argument('--force-version', help='Even run with untested XRandR versions', action='store_true')
+    p.add_argument('--version', action='version', version="%%(prog)s %s" % __version__),
+    p.add_argument('savedfile', help="Saved file to open", nargs="?")
 
-    (options, args) = p.parse_args()
-    if len(args) == 0:
-        file_to_open = None
-    elif len(args) == 1:
-        file_to_open = args[0]
-    else:
-        p.usage()
+    # Enabling this and the later build_from_arguments can be useful during
+    # development, but typically exotic contexts are passed in using the
+    # EXECUTION_CONTEXT environment variable
+    #contextbuilder.populate_parser(p)
 
+    options = p.parse_args()
+
+    #context = contextbuilder.build_from_arguments(options)
     context = contextbuilder.build_default_context()
 
     if options.remote_host:
@@ -316,7 +318,7 @@ def main():
         context = executions_context.WithEnvironment({'DISPLAY': options.randr_display}, underlying_context=context)
 
     a = Application(
-            file=file_to_open,
+            file=options.savedfile,
             context=context,
             force_version=options.force_version
             )
