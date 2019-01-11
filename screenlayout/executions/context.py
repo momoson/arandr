@@ -328,3 +328,9 @@ class ZipfileContext(Context):
             self.stdout = stdout
             self.stderr = stderr
             self.returncode = returncode
+
+        def check_returncode(self):
+            # just like CompleteProcess.check_returncode
+            if self.returncode:
+                raise subprocess.CalledProcessError(self.returncode, None,
+                        self.stdout, self.stderr)
