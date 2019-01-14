@@ -53,7 +53,7 @@ class TransitionOutputWidget(Gtk.Notebook):
             }
 
     def __init__(self, main_widget, output_name):
-        super(TransitionOutputWidget, self).__init__()
+        super().__init__()
 
         self._main_widget = weakref.ref(main_widget)
         self.output_name = output_name
@@ -83,7 +83,7 @@ class TransitionOutputWidget(Gtk.Notebook):
 
     class BaseTab(CategoryDefinitionWidget, Tab):
         def __init__(self):
-            super(TransitionOutputWidget.BaseTab, self).__init__()
+            super().__init__()
 
             OUTPUT = _("Output information")
             CONNECTED = _("Connected monitor")
@@ -296,7 +296,7 @@ class TransitionOutputWidget(Gtk.Notebook):
 
     class PositionTab(CategoryDefinitionWidget, Tab):
         def __init__(self):
-            super(TransitionOutputWidget.PositionTab, self).__init__()
+            super().__init__()
 
             PRECISE_COORDINATES = _("Precise coordinates")
 
@@ -382,7 +382,7 @@ class TransitionOutputWidget(Gtk.Notebook):
 
     class AutomationTab(CategoryDefinitionWidget, Tab):
         def __init__(self):
-            super(TransitionOutputWidget.AutomationTab, self).__init__()
+            super().__init__()
 
             MODE_AND_POSITION = _("Mode and position")
             GLOBAL = _("Global options")

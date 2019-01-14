@@ -59,7 +59,7 @@ class CategoryDefinitionWidget(Gtk.Table):
     __gtype_name__ = "CategoryDefinitionWidget"
 
     def __init__(self, items=None):
-        super(CategoryDefinitionWidget, self).__init__(n_columns=2)
+        super().__init__(n_columns=2)
 
         self.props.border_width = 6 # concerning paddings: the 6 pixels spread through the layouting should add up to the 12px left, 12px between, and 12px right of each column
 

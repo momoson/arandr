@@ -19,9 +19,9 @@ from . import base
 class TransitionOutputForPrimary(base.BaseTransitionOutput):
     def serialize(self):
         if self.transition.primary is self:
-            return ['--primary'] + super(TransitionOutputForPrimary, self).serialize()
+            return ['--primary'] + super().serialize()
         else:
-            return super(TransitionOutputForPrimary, self).serialize()
+            return super().serialize()
 
     def unserialize(self, args):
         if 'primary' in args:
@@ -29,30 +29,30 @@ class TransitionOutputForPrimary(base.BaseTransitionOutput):
                 self.transition.primary = self
             del args.primary
 
-        super(TransitionOutputForPrimary, self).unserialize(args)
+        super().unserialize(args)
 class TransitionForPrimary(base.BaseTransition):
     def _initialize_empty(self):
-        super(TransitionForPrimary, self)._initialize_empty()
+        super()._initialize_empty()
         self.primary = None
 
     NO_PRIMARY = object()
 
     def serialize(self):
         if self.primary is self.NO_PRIMARY:
-            return ['--noprimary'] + super(TransitionForPrimary, self).serialize()
+            return ['--noprimary'] + super().serialize()
         else:
             # if a primary output is explicitly set, it will be handled by the output serialization
-            return super(TransitionForPrimary, self).serialize()
+            return super().serialize()
 
     def unserialize(self, args):
         if args.noprimary:
             self.primary = self.NO_PRIMARY
         del args.noprimary
 
-        super(TransitionForPrimary, self).unserialize(args)
+        super().unserialize(args)
 
     def predict_server(self):
-        super(TransitionForPrimary, self).predict_server()
+        super().predict_server()
 
         if self.primary == self.NO_PRIMARY:
             self.predicted_server.primary = None

@@ -19,7 +19,7 @@ from ...auxiliary import InadequateConfiguration, Geometry
 
 class TransitionOutputForMode(base.BaseTransitionOutput):
     def _initialize_empty(self):
-        super(TransitionOutputForMode, self)._initialize_empty()
+        super()._initialize_empty()
         self.named_mode = None
         self.precise_mode = None
         self.rate = None
@@ -27,7 +27,7 @@ class TransitionOutputForMode(base.BaseTransitionOutput):
         self.off = False
 
     def validate(self):
-        super(TransitionOutputForMode, self).validate()
+        super().validate()
 
         if self.precise_mode is not None and (self.rate is not None or self.named_mode is not None):
             raise InadequateConfiguration("Named modes or refresh rates can not be used together with precise mode settings.")
@@ -39,7 +39,7 @@ class TransitionOutputForMode(base.BaseTransitionOutput):
             raise InadequateConfiguration("Switching an output off is mutually exclusive with setting a mode.")
 
     def serialize(self):
-        args = super(TransitionOutputForMode, self).serialize()
+        args = super().serialize()
 
         if self.precise_mode is not None:
             args += ['--mode', "%#x"%self.precise_mode]
@@ -83,7 +83,7 @@ class TransitionOutputForMode(base.BaseTransitionOutput):
             self.off = True
             del args.off
 
-        super(TransitionOutputForMode, self).unserialize(args)
+        super().unserialize(args)
 
     def set_any_mode(self):
         """Use this if you want to configure a mode but don't care which one"""
@@ -112,7 +112,7 @@ class TransitionOutputForMode(base.BaseTransitionOutput):
         return max((m for m in self.server_output.assigned_modes if m.name == self.named_mode), key=lambda m: (m.is_preferred, m.width * m.height))
 
     def predict_server(self):
-        super(TransitionOutputForMode, self).predict_server()
+        super().predict_server()
         configuredmode = self.get_configured_mode()
         if self.off:
             self.predicted_server_output.active = False

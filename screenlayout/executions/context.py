@@ -90,7 +90,7 @@ class WithEnvironment(StackingContext):
     """Enforces preset environment variables upon executions"""
     def __init__(self, preset_environment, underlying_context=local):
         self.preset_environment = preset_environment
-        super(WithEnvironment, self).__init__(underlying_context)
+        super().__init__(underlying_context)
 
     def run(self, args, env=None):
         if env is not None:
@@ -172,7 +172,7 @@ class SSHContext(StackingContext):
     def __init__(self, host, ssh_args=('-o', 'BatchMode=yes', '-o', 'ControlMaster=no'), underlying_context=local):
         self.host = host
         self.ssh_args = ssh_args
-        super(SSHContext, self).__init__(underlying_context)
+        super().__init__(underlying_context)
 
     def run(self, args, env=None):
         args = _shell_unsplit(args)
@@ -196,7 +196,7 @@ class SimpleLoggingContext(StackingContext):
     """Logs only command execution, no results"""
     def __init__(self, underlying_context=local, logmethod=logging.root.info):
         self.logmethod = logmethod
-        super(SimpleLoggingContext, self).__init__(underlying_context)
+        super().__init__(underlying_context)
 
     def run(self, args, env=None):
         self.logmethod("Execution started: %r within environment %r on %r"%(args, env, self.underlying_context))
@@ -218,7 +218,7 @@ class ZipfileLoggingContext(StackingContext):
         self.store_states = store_states
         self.current_state = ""
         self._incrementing_state_number = 0
-        super(ZipfileLoggingContext, self).__init__(underlying_context)
+        super().__init__(underlying_context)
 
     def run(self, args, env=None, *, next_state=None):
         base_state = self.current_state

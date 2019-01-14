@@ -37,7 +37,7 @@ class TransitionWidget(Gtk.DrawingArea):
             }
 
     def __init__(self, factor=8, context=None, force_version=False):
-        super(TransitionWidget, self).__init__()
+        super().__init__()
 
         self.force_version = force_version
         self.context = context or build_default_context()

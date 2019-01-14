@@ -45,7 +45,7 @@ class Size(tuple):
         arg = tuple(arg)
         if len(arg) != 2:
             raise ValueError("Sizes use XxY format")
-        return super(Size, cls).__new__(cls, arg)
+        return super().__new__(cls, arg)
 
     width = property(lambda self:self[0])
     height = property(lambda self:self[1])
@@ -92,7 +92,7 @@ class Position(tuple):
         arg = tuple(arg)
         if len(arg) != 2:
             raise ValueError("Positions use XxY format")
-        return super(Position, cls).__new__(cls, arg)
+        return super().__new__(cls, arg)
 
     left = property(lambda self:self[0])
     top = property(lambda self:self[1])
@@ -117,7 +117,7 @@ class Geometry(namedtuple("_Geometry", ['left', 'top', 'width', 'height'])):
         if isinstance(left, str):
             width,rest = left.split("x")
             height,left,top = rest.split("+")
-        return super(Geometry, cls).__new__(cls, left=int(left), top=int(top), width=int(width), height=int(height))
+        return super().__new__(cls, left=int(left), top=int(top), width=int(width), height=int(height))
 
     def __str__(self):
         return "%dx%d+%d+%d"%(self[2:4]+self[0:2])
@@ -127,7 +127,7 @@ class Geometry(namedtuple("_Geometry", ['left', 'top', 'width', 'height'])):
 
 class FlagClass(type):
     def __init__(self, name, bases, dict):
-        super(FlagClass, self).__init__(name, bases, dict)
+        super().__init__(name, bases, dict)
 
         if 'values' in dict: # guard agains error on Flag class
             self.values = [super(FlagClass, self).__call__(x) for x in dict['values']]

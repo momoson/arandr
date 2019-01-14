@@ -22,20 +22,20 @@ from ...auxiliary import Geometry, Position
 
 class TransitionOutputForPosition(base.BaseTransitionOutput):
     def _initialize_empty(self):
-        super(TransitionOutputForPosition, self)._initialize_empty()
+        super()._initialize_empty()
         self.position = None
 
     def serialize(self):
         if self.position is not None:
-            return ['--pos', str(self.position)] + super(TransitionOutputForPosition, self).serialize()
+            return ['--pos', str(self.position)] + super().serialize()
         else:
-            return super(TransitionOutputForPosition, self).serialize()
+            return super().serialize()
 
     def unserialize(self, args):
         if 'pos' in args:
             self.position = args.pos
             del args.pos
-        super(TransitionOutputForPosition, self).unserialize(args)
+        super().unserialize(args)
 
     def set_any_position(self):
         """Use this if you want to configure a position but don't care which
@@ -46,7 +46,7 @@ class TransitionOutputForPosition(base.BaseTransitionOutput):
             self.position = Position((0, 0))
 
     def predict_server(self):
-        super(TransitionOutputForPosition, self).predict_server()
+        super().predict_server()
         if self.position is not None:
             self.predicted_server_output.geometry = Geometry(
                 self.position.left,
@@ -59,7 +59,7 @@ class TransitionOutputForPosition(base.BaseTransitionOutput):
         self.position = Position((self.position.left + delta[0], self.position.top + delta[1]))
 
     def shove_to_fit(self):
-        super(TransitionOutputForPosition, self).shove_to_fit()
+        super().shove_to_fit()
 
         if self.position is None:
             return
@@ -89,7 +89,7 @@ class TransitionForPosition(base.BaseTransition):
     Output = TransitionOutputForPosition
 
     def shove_to_fit(self):
-        super(TransitionForPosition, self).shove_to_fit()
+        super().shove_to_fit()
 
         positioned_outputs = [o for o in self.outputs.values() if o.position is not None]
         if positioned_outputs:
