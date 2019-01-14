@@ -21,6 +21,8 @@ from collections import OrderedDict
 from math import sqrt
 import binascii
 
+from . import callbacks
+
 from ..gtktools import CategoryDefinitionWidget, Gtk, GObject
 from ..xrandr.constants import ConnectionStatus, SubpixelOrder
 
@@ -30,9 +32,9 @@ import gettext
 gettext.install('arandr')
 
 class Tab:
-    def _set_outputwidget(self, new_value):
-        self._outputwidget = weakref.ref(new_value)
-    outputwidget = property(lambda self: self._outputwidget(), _set_outputwidget)
+    # please set self.outputwidget on construction yourself; doing this via the
+    # constructor would only be hell with inheritance
+    pass
 
 class TransitionOutputWidget(Gtk.Notebook):
     """A detail widget for a single output of a transition. Bound to (and
@@ -62,16 +64,15 @@ class TransitionOutputWidget(Gtk.Notebook):
 
     def _create_tabs(self):
         self.tabs = OrderedDict([
-            ('base', self.BaseTab()),
-            ('position', self.PositionTab()),
-            ('edid', self.EDIDTab()),
-            ('properties', self.PropertiesTab()),
-            ('automation', self.AutomationTab()),
+            ('base', self.BaseTab(self)),
+            ('position', self.PositionTab(self)),
+            ('edid', self.EDIDTab(self)),
+            ('properties', self.PropertiesTab(self)),
+            ('automation', self.AutomationTab(self)),
             ])
 
         for t in self.tabs.values():
             self.insert_page(t, tab_label=t.get_label(), position=-1)
-            t.outputwidget = self
 
     def update(self):
         for t in self.tabs.values():
@@ -82,8 +83,9 @@ class TransitionOutputWidget(Gtk.Notebook):
     server_output = property(lambda self: self.transition_output.server_output)
 
     class BaseTab(CategoryDefinitionWidget, Tab):
-        def __init__(self):
+        def __init__(self, outputwidget):
             super().__init__()
+            self.outputwidget = outputwidget
 
             OUTPUT = _("Output information")
             CONNECTED = _("Connected monitor")
@@ -97,7 +99,10 @@ class TransitionOutputWidget(Gtk.Notebook):
             self.subpixels = Gtk.Label()
 
             self.active = Gtk.CheckButton()
-            self.active.connect('clicked', self.set_active)
+            self.active.connect('clicked',
+                    callbacks.set_active(
+                        lambda: self.outputwidget.transition_output,
+                        self.outputwidget))
             self.resolution = self._construct_resolution_box()
             self.resolution.connect('changed', self.set_resolution)
             self.refreshrate = self._construct_rate_box()
@@ -238,16 +243,6 @@ class TransitionOutputWidget(Gtk.Notebook):
 
             self.primary.props.active = self.outputwidget.transition_output is self.outputwidget.transition_output.transition.primary
 
-        def set_active(self, widget):
-            if widget.props.active == self.outputwidget.transition_output.is_active():
-                return
-
-            if widget.props.active:
-                self.outputwidget.transition_output.enable()
-            else:
-                self.outputwidget.transition_output.disable()
-            self.outputwidget.emit('changed')
-
         def set_resolution(self, widget):
             active_iter = widget.get_active_iter()
             if active_iter is None:
@@ -288,8 +283,9 @@ class TransitionOutputWidget(Gtk.Notebook):
             self.outputwidget.emit('changed')
 
     class PositionTab(CategoryDefinitionWidget, Tab):
-        def __init__(self):
+        def __init__(self, outputwidget):
             super().__init__()
+            self.outputwidget = outputwidget
 
             PRECISE_COORDINATES = _("Precise coordinates")
 
@@ -360,6 +356,10 @@ class TransitionOutputWidget(Gtk.Notebook):
                 self.outputwidget.emit('changed')
 
     class EDIDTab(Gtk.Label, Tab):
+        def __init__(self, outputwidget):
+            super().__init__()
+            self.outputwidget = outputwidget
+
         def update(self):
             if 'EDID' in self.outputwidget.server_output.properties:
                 hexstring = binascii.b2a_hex(self.outputwidget.server_output.properties['EDID'][0]).decode('ascii')
@@ -374,8 +374,9 @@ class TransitionOutputWidget(Gtk.Notebook):
             return Gtk.Label(_("EDID information"))
 
     class AutomationTab(CategoryDefinitionWidget, Tab):
-        def __init__(self):
+        def __init__(self, outputwidget):
             super().__init__()
+            self.outputwidget = outputwidget
 
             MODE_AND_POSITION = _("Mode and position")
             GLOBAL = _("Global options")
@@ -483,8 +484,9 @@ class TransitionOutputWidget(Gtk.Notebook):
         OTHER = _("Other properties")
         READONLY = _("Read-only properties")
 
-        def __init__(self):
+        def __init__(self, outputwidget):
             super().__init__()
+            self.outputwidget = outputwidget
             self.set_items([])
 
         @staticmethod

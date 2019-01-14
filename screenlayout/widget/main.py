@@ -19,6 +19,8 @@ import os
 import stat
 import locale
 
+from . import callbacks
+
 from ..gtktools import Pango, PangoCairo, Gtk, GObject, Gdk
 
 from ..xrandr.constants import ConnectionStatus
@@ -348,16 +350,7 @@ class TransitionWidget(Gtk.DrawingArea):
 
         enabled = Gtk.CheckMenuItem.new_with_mnemonic(_("_Active"))
         enabled.props.active = output.named_mode or output.precise_mode
-        def set_active(widget):
-            if widget.props.active == output.is_active():
-                return
-
-            if widget.props.active:
-                output.enable()
-            else:
-                output.disable()
-            self.emit('changed')
-        enabled.connect('activate', set_active)
+        enabled.connect('activate', callbacks.set_active(lambda: output, self))
 
         m.append(enabled)
         m.show_all()
