@@ -239,20 +239,13 @@ class TransitionOutputWidget(Gtk.Notebook):
             self.primary.props.active = self.outputwidget.transition_output is self.outputwidget.transition_output.transition.primary
 
         def set_active(self, widget):
-            old_state = bool(self.outputwidget.transition_output.named_mode or self.outputwidget.transition_output.precise_mode)
-            if widget.props.active == old_state:
+            if widget.props.active == self.outputwidget.transition_output.is_active():
                 return
 
             if widget.props.active:
-                self.outputwidget.transition_output.set_any_mode()
-                self.outputwidget.transition_output.set_any_position()
+                self.outputwidget.transition_output.enable()
             else:
-                self.outputwidget.transition_output.named_mode = None
-                self.outputwidget.transition_output.rate = None
-                self.outputwidget.transition_output.precise_mode = None
-                self.outputwidget.transition_output.auto = False
-                self.outputwidget.transition_output.off = True
-                self.outputwidget.transition_output.position = None
+                self.outputwidget.transition_output.disable()
             self.outputwidget.emit('changed')
 
         def set_resolution(self, widget):

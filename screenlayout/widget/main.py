@@ -137,57 +137,6 @@ class TransitionWidget(Gtk.DrawingArea):
         self.load_from_file(file)
     '''
 
-    #################### doing changes ####################
-
-    '''
-    def _set_something(self, which, on, data):
-        old = getattr(self._xrandr.configuration.outputs[on], which)
-        setattr(self._xrandr.configuration.outputs[on], which, data)
-        try:
-            self._xrandr.check_configuration()
-        except InadequateConfiguration:
-            setattr(self._xrandr.configuration.outputs[on], which, old)
-            raise
-
-        self._force_repaint()
-        self.emit('changed')
-    '''
-
-    def set_position(self, on, pos):
-        self._set_something('position', on, pos)
-    def set_rotation(self, on, rot):
-        self._set_something('rotation', on, rot)
-    def set_resolution(self, on, res):
-        self._set_something('mode', on, res)
-
-    def set_active(self, on, active):
-        v = self._xrandr.state.virtual
-        o = self._xrandr.configuration.outputs[on]
-
-        if not active and o.active:
-            o.active = False
-            # don't delete: allow user to re-enable without state being lost
-        if active and not o.active:
-            if hasattr(o, 'position'):
-                o.active = True # nothing can go wrong, position already set
-            else:
-                pos = Position((0,0))
-                for m in self._xrandr.state.outputs[on].modes:
-                    # determine first possible mode
-                    if m[0]<=v.max[0] and m[1]<=v.max[1]:
-                        mode = m
-                        break
-                else:
-                    raise InadequateConfiguration("Smallest mode too large for virtual.")
-
-                o.active = True
-                o.position = pos
-                o.mode = mode
-                o.rotation = NORMAL
-
-        self._force_repaint()
-        self.emit('changed')
-
     #################### painting ####################
 
     def do_draw(self, cr):
@@ -399,7 +348,16 @@ class TransitionWidget(Gtk.DrawingArea):
 
         enabled = Gtk.CheckMenuItem.new_with_mnemonic(_("_Active"))
         enabled.props.active = output.named_mode or output.precise_mode
-        enabled.connect('activate', lambda menuitem: output.set_active)
+        def set_active(widget):
+            if widget.props.active == output.is_active():
+                return
+
+            if widget.props.active:
+                output.enable()
+            else:
+                output.disable()
+            self.emit('changed')
+        enabled.connect('activate', set_active)
 
         m.append(enabled)
         m.show_all()

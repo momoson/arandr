@@ -135,5 +135,10 @@ class TransitionOutputForMode(base.BaseTransitionOutput):
         else:
             self.off = True
 
+    def is_active(self):
+        return bool(self.named_mode is not None
+                or self.precise_mode is not None
+                or self.auto)
+
 class TransitionForMode(base.BaseTransition):
     Output = TransitionOutputForMode

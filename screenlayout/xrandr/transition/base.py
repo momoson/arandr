@@ -90,17 +90,7 @@ class BaseTransition:
     def _initialize_empty(self):
         """Fill self's properties for a no-op transition."""
 
-        bases = []
-        for transition_class in type(self).mro():
-            if not hasattr(transition_class, "Output"):
-                continue
-            output_class = transition_class.Output
-            if output_class in bases:
-                continue
-            bases.append(output_class)
-        my_output_class = type("%sOutput"%type(self).__name__, tuple(bases), {})
-
-        self.outputs = dict((name, my_output_class(name, self)) for name in self.server.outputs)
+        self.outputs = dict((name, self.Output(name, self)) for name in self.server.outputs)
 
     def shove_to_fit(self):
         """Give a transition a chance to modify itself if it is in a state that

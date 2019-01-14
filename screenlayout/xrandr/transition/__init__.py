@@ -18,8 +18,28 @@ from . import primary, position, mode
 
 from .base import FreezeLevel
 
-Transition = type("Transition", (
-    primary.TransitionForPrimary,
-    position.TransitionForPosition,
-    mode.TransitionForMode,
-    ), {})
+class TransitionOutput(
+        primary.TransitionOutputForPrimary,
+        position.TransitionOutputForPosition,
+        mode.TransitionOutputForMode
+        ):
+    # High-level functions that cause action across modules
+
+    def enable(self):
+        self.set_any_mode()
+        self.set_any_position()
+
+    def disable(self):
+        self.named_mode = None
+        self.rate = None
+        self.precise_mode = None
+        self.auto = False
+        self.off = True
+        self.position = None
+
+class Transition(
+        primary.TransitionForPrimary,
+        position.TransitionForPosition,
+        mode.TransitionForMode
+        ):
+    Output = TransitionOutput
