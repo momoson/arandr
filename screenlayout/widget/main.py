@@ -17,6 +17,7 @@
 
 import os
 import stat
+import locale
 
 from ..gtktools import Pango, PangoCairo, Gtk, GObject, Gdk
 
@@ -52,8 +53,6 @@ class TransitionWidget(Gtk.DrawingArea):
         self.connect('changed', lambda widget: self._force_repaint())
 
         self.setup_draganddrop()
-
-        self.setup_contextmenu()
 
         self._transition = None
 
@@ -115,7 +114,6 @@ class TransitionWidget(Gtk.DrawingArea):
         self._update_size_request()
         if self.get_window():
             self._force_repaint()
-        self.refresh_contextmenu()
         self.emit('changed')
 
     def save_to_x(self):
@@ -322,8 +320,10 @@ class TransitionWidget(Gtk.DrawingArea):
             if old_sequence != self.sequence:
                 self._force_repaint()
         if event.button == Gdk.BUTTON_SECONDARY:
-            m = self.get_contextmenu_for(undermouse)
-            m.show_all() # not relevant in ARandR directly but in the demo when no menu is always visible
+            m = self.get_contextmenu(undermouse)
+            # Keep the menu item alive as a Python object to keep its children
+            # alive; see _contextmenu_items_for_outputs
+            self._last_menu_item = m
             m.popup_at_pointer(event)
 
         self._lastclick = (event.x, event.y)
@@ -347,35 +347,50 @@ class TransitionWidget(Gtk.DrawingArea):
 
     #################### context menu ####################
 
-    def get_contextmenu_for(self, outputs=None):
-        outputs = outputs or list(self._transition.outputs.values())
+    def get_contextmenu(self, outputs=()):
+        """Note that due to Gtk menu retainment rules, the caller may need to
+        keep the returned object around"""
 
         if len(outputs) == 1:
             output, = outputs
-            return self._contextmenu_parts[output.name].props.submenu
+            return self._contextmenu_for_output(output)
 
-        # FIXME: create a partial menu that only contains the relevant outputs
-        # and still lives long enough not to be affected to what has been
-        # discussed in gnome's #python 2014-12-31 15:00
-        return self._main_contextmenu
+        else:
+            return self._contextmenu_items_for_outputs(outputs)
 
-    def get_main_contextmenu(self):
-        return self._main_contextmenu
+    def _contextmenu_items_for_outputs(self, outputs=None):
+        """Clear a menu of all its children, then build menu items into it for all given outputs"""
 
-    def setup_contextmenu(self):
-        self._main_contextmenu = Gtk.Menu()
-        self._contextmenu_parts = {}
+        menu = Gtk.Menu()
 
-    def refresh_contextmenu(self):
-        for output in sorted(self._transition.outputs.values(), key=lambda o: o.name):
-            i = Gtk.MenuItem(label=output.name)
-            i.props.submenu = self._contextmenu_for_output(output)
-            self._main_contextmenu.append(i)
+        if not outputs:
+            outputs = self._transition.outputs.values()
 
-            self._contextmenu_parts[output.name] = i
+        # GTK does not keep menu items alive just because they are children of
+        # another menu; keeping them close as children to ensure they outlive
+        # the menu.
+        menu._python_kept_children = []
 
-            if output.server_output.connection_status != ConnectionStatus.connected:
-                i.props.sensitive = False
+        for output in sorted(
+                outputs,
+                key=lambda o: locale.strxfrm(o.name)
+                ):
+            child = self._contextmenu_item_for_output(output)
+            menu._python_kept_children.append(child)
+            menu.append(child)
+
+        menu.show_all()
+
+        return menu
+
+    def _contextmenu_item_for_output(self, output):
+        item = Gtk.MenuItem(label=output.name)
+        item.props.submenu = self._contextmenu_for_output(output)
+
+        if output.server_output.connection_status != ConnectionStatus.connected:
+            item.props.sensitive = False
+
+        return item
 
     def _contextmenu_for_output(self, output):
         m = Gtk.Menu()
@@ -387,6 +402,7 @@ class TransitionWidget(Gtk.DrawingArea):
         enabled.connect('activate', lambda menuitem: output.set_active)
 
         m.append(enabled)
+        m.show_all()
         return m
 
         if oc.active:

@@ -274,7 +274,10 @@ class Application:
 
     def _populate_outputs(self):
         w = self.uimanager.get_widget('/MenuBar/Outputs')
-        w.props.submenu = self.widget.get_main_contextmenu()
+        menu = self.widget.get_contextmenu()
+        # as demanded by get_contextmenu
+        self._retained_main_menu = menu
+        w.props.submenu = menu
 
     #################### application related ####################
 
