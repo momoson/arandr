@@ -288,7 +288,8 @@ class Application:
         d.props.translator_credits = "\n".join(TRANSLATORS)
         d.props.copyright = COPYRIGHT
         d.props.comments = PROGRAMDESCRIPTION
-        d.props.license = open(os.path.join(os.path.dirname(__file__), 'data', 'gpl-3.txt')).read()
+        with open(os.path.join(os.path.dirname(__file__), 'data', 'gpl-3.txt')) as f:
+            d.props.license = f.read()
         d.props.logo_icon_name = 'video-display'
         d.run()
         d.destroy()
