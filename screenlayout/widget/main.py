@@ -38,8 +38,10 @@ class TransitionWidget(Gtk.DrawingArea):
             'changed':(GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE, ()),
             }
 
-    def __init__(self, factor=8, context=None, force_version=False):
+    def __init__(self, factor=8, context=None, force_version=False, detailscallback=None):
         super().__init__()
+
+        self._detailscallback = detailscallback
 
         self.force_version = force_version
         self.context = context or build_default_context()
@@ -345,8 +347,6 @@ class TransitionWidget(Gtk.DrawingArea):
 
     def _contextmenu_for_output(self, output):
         m = Gtk.Menu()
-        details = Gtk.MenuItem.new_with_mnemonic(_("_Details..."))
-        m.append(details)
 
         enabled = Gtk.CheckMenuItem.new_with_mnemonic(_("_Active"))
         enabled.props.active = output.named_mode or output.precise_mode
@@ -397,6 +397,11 @@ class TransitionWidget(Gtk.DrawingArea):
             m.add(res_i)
             m.add(or_i)
         '''
+
+        if self._detailscallback:
+            details = Gtk.MenuItem.new_with_mnemonic(_("_Details..."))
+            details.connect('activate', lambda widget: self._detailscallback(output.name))
+            m.append(details)
 
         m.show_all()
         return m

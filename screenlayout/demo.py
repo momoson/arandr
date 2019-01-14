@@ -28,6 +28,11 @@ from .widget import TransitionWidget, TransitionOutputWidget
 
 current_tabs = [] # kept here just for sake of global access in IPython sessions
 
+def switch_to_name(notebook, name):
+    for (i, t) in enumerate(notebook.get_children()):
+        if t.output_name == name:
+            notebook.set_current_page(i)
+
 def update_tabs(widget, notebook):
     print("Current configuration:", widget.save_to_string())
     for ok, od in list(widget._transition.outputs.items()):
@@ -60,7 +65,7 @@ def main(do_run=True):
     w = Gtk.Window()
     w.connect('destroy',Gtk.main_quit)
 
-    r = TransitionWidget()
+    r = TransitionWidget(detailscallback=lambda name: switch_to_name(output_properties, name))
     r.load_from_x()
 
     output_properties = Gtk.Notebook()
