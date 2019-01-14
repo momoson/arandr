@@ -35,3 +35,20 @@ def set_active(outputfactory, to_be_changed):
 
         to_be_changed.emit('changed')
     return set_active
+
+def set_primary(outputfactory, to_be_changed):
+    """Like set_active, but for primary"""
+    def set_primary(widget):
+        output = outputfactory()
+
+        old_state = output.transition.primary is output
+        if old_state == widget.props.active:
+            return
+
+        if widget.props.active:
+            output.transition.primary = output
+        else:
+            output.transition.primary = output.transition.NO_PRIMARY
+
+        to_be_changed.emit('changed')
+    return set_primary

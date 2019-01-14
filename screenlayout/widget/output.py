@@ -108,7 +108,10 @@ class TransitionOutputWidget(Gtk.Notebook):
             self.refreshrate = self._construct_rate_box()
             self.refreshrate.connect('changed', self.set_refreshrate)
             self.primary = Gtk.CheckButton()
-            self.primary.connect('clicked', self.set_primary)
+            self.primary.connect('clicked',
+                    callbacks.set_primary(
+                        lambda: self.outputwidget.transition_output,
+                        self.outputwidget))
 
             items = [
                     (OUTPUT, _("Output name:"), self.output_name),
@@ -269,18 +272,6 @@ class TransitionOutputWidget(Gtk.Notebook):
             if selected_rate != self.outputwidget.transition_output.rate:
                 self.outputwidget.transition_output.rate = selected_rate
                 self.outputwidget.emit('changed')
-
-        def set_primary(self, widget):
-            old_state = self.outputwidget.transition_output.transition.primary is self.outputwidget.transition_output
-            if old_state == widget.props.active:
-                return
-
-            if widget.props.active:
-                self.outputwidget.transition_output.transition.primary = self.outputwidget.transition_output
-            else:
-                self.outputwidget.transition_output.transition.primary = self.outputwidget.transition_output.transition.NO_PRIMARY
-
-            self.outputwidget.emit('changed')
 
     class PositionTab(CategoryDefinitionWidget, Tab):
         def __init__(self, outputwidget):

@@ -351,11 +351,15 @@ class TransitionWidget(Gtk.DrawingArea):
         enabled = Gtk.CheckMenuItem.new_with_mnemonic(_("_Active"))
         enabled.props.active = output.named_mode or output.precise_mode
         enabled.connect('activate', callbacks.set_active(lambda: output, self))
-
         m.append(enabled)
-        m.show_all()
-        return m
 
+        primary = Gtk.CheckMenuItem.new_with_mnemonic(_("_Primary"))
+        primary.props.active = output.transition.primary is output
+        primary.connect('activate', callbacks.set_primary(lambda: output, self))
+        m.append(primary)
+
+
+        '''
         if oc.active:
             res_m = Gtk.Menu()
             for r in os.modes:
@@ -392,6 +396,7 @@ class TransitionWidget(Gtk.DrawingArea):
 
             m.add(res_i)
             m.add(or_i)
+        '''
 
         m.show_all()
         return m
