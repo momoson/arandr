@@ -96,7 +96,9 @@ def main(do_run=True):
 
     v = Gtk.VBox()
     w.add(v)
-    v.add(r)
+    scrolled_r = Gtk.ScrolledWindow()
+    scrolled_r.add(r)
+    v.add(scrolled_r)
     v.add(output_properties)
     v.pack_end(b1, expand=False, fill=False, padding=0)
     v.pack_end(b2, expand=False, fill=False, padding=0)
