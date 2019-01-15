@@ -17,9 +17,11 @@
 """Demo application, primarily used to make sure the screenlayout library can
 be used independent of ARandR.
 
-Run by calling the main() function. For interactive testing, call `main(False)`
-from IPython or anything else that runs a GTK main loop. In that case, you can
+Run by calling the main() function. For interactive testing, call `main()`
+from IPython[1] or anything else that runs a GTK main loop. In that case, you can
 fetch the current tab widgets from the `current_tabs` global variable.
+
+[1]: eg. `ipython3 --gui=gtk3 -c 'from screenlayout.demo import main; r = main()' -i`
 """
 
 from .gtktools import Gtk
@@ -59,7 +61,7 @@ def update_tabs(widget, notebook):
 
     notebook.show_all()
 
-def main(do_run=True):
+def main(do_run=False):
     """Create a demo widget in a window with some peripherials, and either run
     it in GTK or return the widget"""
     w = Gtk.Window()
@@ -111,4 +113,4 @@ def main(do_run=True):
         return r
 
 if __name__ == "__main__":
-    main()
+    main(True)
