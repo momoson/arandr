@@ -28,7 +28,7 @@ from ..xrandr.server import Server
 from ..xrandr.transition import Transition, FreezeLevel
 from ..snap import Snap
 from ..executions.contextbuilder import build_default_context
-from ..auxiliary import Geometry, Position, InadequateConfiguration
+from ..auxiliary import Geometry, Position, InadequateConfiguration, ModeCollectionByName
 
 import gettext
 gettext.install('arandr')
@@ -358,22 +358,26 @@ class TransitionWidget(Gtk.DrawingArea):
         primary.connect('activate', callbacks.set_primary(lambda: output, self))
         m.append(primary)
 
+        resolution_menu = Gtk.Menu()
+        for mode in ModeCollectionByName.list_from_modes(output.server_output.assigned_modes):
+            # FIXME: can we use thge model from from the output widgets?
+            label = mode.name
+            if mode.is_preferred:
+                label += " \N{BLACK STAR}"
+            i = Gtk.CheckMenuItem(label=label)
+            i.props.draw_as_radio = True
+            i.props.active = output.predicted_server_output.mode in mode.modes
+            def _res_set(menuitem, modename=mode.name):
+                try:
+                    output.named_mode = modename
+                except InadequateConfiguration as e:
+                    self.error_message(_("Setting this resolution is not possible here: %s")%e.message)
+                finally:
+                    self.emit('changed')
+            i.connect('activate', _res_set)
+            resolution_menu.add(i)
 
         '''
-        if oc.active:
-            res_m = Gtk.Menu()
-            for r in os.modes:
-                i = Gtk.CheckMenuItem(str(r))
-                i.props.draw_as_radio = True
-                i.props.active = (oc.mode.name == r.name)
-                def _res_set(menuitem, on, r):
-                    try:
-                        self.set_resolution(on, r)
-                    except InadequateConfiguration as e:
-                        self.error_message(_("Setting this resolution is not possible here: %s")%e.message)
-                i.connect('activate', _res_set, on, r)
-                res_m.add(i)
-
             or_m = Gtk.Menu()
             for r in ROTATIONS:
                 i = Gtk.CheckMenuItem("%s"%r)
@@ -393,10 +397,18 @@ class TransitionWidget(Gtk.DrawingArea):
             res_i.props.submenu = res_m
             or_i = Gtk.MenuItem(_("Orientation"))
             or_i.props.submenu = or_m
-
-            m.add(res_i)
-            m.add(or_i)
         '''
+
+        orientation_menu = Gtk.Menu()
+
+        m.append(Gtk.MenuItem(
+            label=_("Resolution"),
+            submenu=resolution_menu,
+            ))
+        m.append(Gtk.MenuItem(
+            label=_("Orientation"),
+            submenu=orientation_menu,
+            ))
 
         if self._detailscallback:
             details = Gtk.MenuItem.new_with_mnemonic(_("_Details..."))

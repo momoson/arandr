@@ -276,6 +276,12 @@ class Server:
         def __repr__(self):
             return "<%s %r (%#x) %s%s%s>"%(type(self).__name__, self.name, self.id, tuple.__repr__(self), " preferred" if self.is_preferred else "", " current" if self.is_current else "")
 
+        def __str__(self):
+            if "%dx%d" % (self.hwidth, self.vheight) in self.name:
+                return self.name
+            else:
+                return "%s (%dx%d)" % (self.name, self.hwidth, self.vheight)
+
     class Output:
         """Parser and representation of an output of a Server"""
 

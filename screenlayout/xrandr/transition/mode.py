@@ -126,6 +126,9 @@ class TransitionOutputForMode(base.BaseTransitionOutput):
                 configuredmode.width,
                 configuredmode.height,
                 )
+            self.predicted_server_output.mode_number = configuredmode.id
+        else:
+            self.predicted_server_output.mode_number = False
 
     def freeze_state(self, level=base.FreezeLevel.ALL):
         super().freeze_state(level)

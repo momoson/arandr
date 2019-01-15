@@ -26,7 +26,7 @@ from . import callbacks
 from ..gtktools import CategoryDefinitionWidget, Gtk, GObject
 from ..xrandr.constants import ConnectionStatus, SubpixelOrder
 
-from ..auxiliary import Position
+from ..auxiliary import Position, ModeCollectionByName
 
 import gettext
 gettext.install('arandr')
@@ -208,9 +208,7 @@ class TransitionOutputWidget(Gtk.Notebook):
             self.resolution.props.sensitive = bool(self.outputwidget.transition_output.named_mode)
 
             model_by_name = Gtk.ListStore(GObject.TYPE_PYOBJECT)
-            modenames = set(m.name for m in self.outputwidget.server_output.assigned_modes)
-            modecollections = [self.ModeCollectionByName(n, [m for m in self.outputwidget.server_output.assigned_modes if m.name == n]) for n in modenames]
-            modecollections.sort(key=lambda a: (a.is_preferred, a.modes[0].width * a.modes[0].height), reverse=True)
+            modecollections = ModeCollectionByName.list_from_modes(self.outputwidget.server_output.assigned_modes)
             select_iter = None
             for mc in modecollections:
                 mc_iter = model_by_name.append((mc,))
@@ -255,16 +253,6 @@ class TransitionOutputWidget(Gtk.Notebook):
             if self.outputwidget.transition_output.named_mode != selected_collection.name:
                 self.outputwidget.transition_output.named_mode = selected_collection.name
                 self.outputwidget.emit('changed')
-
-        class ModeCollectionByName:
-            def __init__(self, name, modes):
-                self.name = name
-                self.modes = modes
-
-                assert all(m.name == self.name for m in self.modes)
-
-            is_preferred = property(lambda self: any(x.is_preferred for x in self.modes))
-            is_current = property(lambda self: any(x.is_current for x in self.modes))
 
         def set_refreshrate(self, widget):
             active_iter = widget.get_active_iter()

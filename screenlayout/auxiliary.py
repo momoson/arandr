@@ -52,28 +52,6 @@ class Size(tuple):
     def __str__(self):
         return "%dx%d"%self
 
-class NamedSize:
-    """Object that behaves like a size, but has an additional name attribute"""
-    def __init__(self, size, name):
-        self._size = size
-        self.name = name
-
-    width = property(lambda self:self[0])
-    height = property(lambda self:self[1])
-    def __str__(self):
-        if "%dx%d"%(self.width, self.height) in self.name:
-            return self.name
-        else:
-            return "%s (%dx%d)"%(self.name, self.width, self.height)
-
-    def __iter__(self):
-        return self._size.__iter__()
-
-    def __getitem__(self, i):
-        return self._size[i]
-
-    def __len__(self):
-        return 2
 
 class Position(tuple):
     """2-tuple of left and top that can be created from a '<left>x<top>' string
@@ -162,3 +140,20 @@ class Flag(str, metaclass=FlagClass):
     # TODO: replace with Python 3.4 Enums
     def __repr__(self):
         return '<%s "%s">'%(type(self).__name__, self)
+
+class ModeCollectionByName:
+    def __init__(self, name, modes):
+        self.name = name
+        self.modes = modes
+
+        assert all(m.name == self.name for m in self.modes)
+
+    @classmethod
+    def list_from_modes(cls, assigned_modes):
+        """Create a sorted list of ModeCollectionByName groups from a list of modes"""
+        modenames = set(m.name for m in assigned_modes)
+        modecollections = [cls(n, [m for m in assigned_modes if m.name == n]) for n in modenames]
+        modecollections.sort(key=lambda a: (a.is_preferred, a.modes[0].width * a.modes[0].height), reverse=True)
+        return modecollections
+
+    is_preferred = property(lambda self: any(x.is_preferred for x in self.modes))
