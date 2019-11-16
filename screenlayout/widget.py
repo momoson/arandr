@@ -28,7 +28,7 @@ gi.require_version('PangoCairo', '1.0')
 from gi.repository import GObject, Gtk, Pango, PangoCairo, Gdk, GLib
 
 from .snap import Snap
-from .xrandr import XRandR, Feature
+from .swayoutput import SwayOutput
 from .auxiliary import Position, NORMAL, ROTATIONS, InadequateConfiguration
 from .i18n import _
 
@@ -61,7 +61,7 @@ class ARandRWidget(Gtk.DrawingArea):
 
         self.setup_draganddrop()
 
-        self._xrandr = XRandR(display=display, force_version=force_version)
+        self._swayoutput = SwayOutput(display=display, force_version=force_version)
 
         self.connect('draw', self.do_expose_event)
 
@@ -75,7 +75,10 @@ class ARandRWidget(Gtk.DrawingArea):
     factor = property(lambda self: self._factor, _set_factor)
 
     def abort_if_unsafe(self):
-        if not [x for x in self._xrandr.configuration.outputs.values() if x.active]:
+
+        return False
+
+        if not [x for x in self._swayoutput.configuration.outputs.values() if x.active]:
             dialog = Gtk.MessageDialog(
                 None, Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.ButtonsType.YES_NO,
                 _(
@@ -104,30 +107,30 @@ class ARandRWidget(Gtk.DrawingArea):
         # but will always err at the side of caution.
         max_gapless = sum(
             max(output.size) if output.active else 0
-            for output in self._xrandr.configuration.outputs.values()
+            for output in self._swayoutput.configuration.outputs.values()
         )
         # have some buffer
         usable_size = int(max_gapless * 1.1)
         # don't request too large a window, but make sure very possible compination fits
-        xdim = min(self._xrandr.state.virtual.max[0], usable_size)
-        ydim = min(self._xrandr.state.virtual.max[1], usable_size)
+        xdim = min(self._swayoutput.state.virtual.max[0], usable_size)
+        ydim = min(self._swayoutput.state.virtual.max[1], usable_size)
         self.set_size_request(xdim // self.factor, ydim // self.factor)
 
     #################### loading ####################
 
     def load_from_file(self, file):
         data = open(file).read()
-        template = self._xrandr.load_from_string(data)
-        self._xrandr_was_reloaded()
+        template = self._swayoutput.load_from_string(data)
+        self._swayoutput_was_reloaded()
         return template
 
     def load_from_x(self):
-        self._xrandr.load_from_x()
-        self._xrandr_was_reloaded()
-        return self._xrandr.DEFAULTTEMPLATE
+        self._swayoutput.load_from_x()
+        self._swayoutput_was_reloaded()
+        return self._swayoutput.DEFAULTTEMPLATE
 
-    def _xrandr_was_reloaded(self):
-        self.sequence = sorted(self._xrandr.outputs)
+    def _swayoutput_was_reloaded(self):
+        self.sequence = sorted(self._swayoutput.outputs)
         self._lastclick = (-1, -1)
 
         self._update_size_request()
@@ -136,11 +139,11 @@ class ARandRWidget(Gtk.DrawingArea):
         self.emit('changed')
 
     def save_to_x(self):
-        self._xrandr.save_to_x()
+        self._swayoutput.save_to_x()
         self.load_from_x()
 
     def save_to_file(self, file, template=None, additional=None):
-        data = self._xrandr.save_to_shellscript_string(template, additional)
+        data = self._swayoutput.save_to_shellscript_string(template, additional)
         open(file, 'w').write(data)
         os.chmod(file, stat.S_IRWXU)
         self.load_from_file(file)
@@ -148,12 +151,12 @@ class ARandRWidget(Gtk.DrawingArea):
     #################### doing changes ####################
 
     def _set_something(self, which, output_name, data):
-        old = getattr(self._xrandr.configuration.outputs[output_name], which)
-        setattr(self._xrandr.configuration.outputs[output_name], which, data)
+        old = getattr(self._swayoutput.configuration.outputs[output_name], which)
+        setattr(self._swayoutput.configuration.outputs[output_name], which, data)
         try:
-            self._xrandr.check_configuration()
+            self._swayoutput.check_configuration()
         except InadequateConfiguration:
-            setattr(self._xrandr.configuration.outputs[output_name], which, old)
+            setattr(self._swayoutput.configuration.outputs[output_name], which, old)
             raise
 
         self._force_repaint()
@@ -169,11 +172,11 @@ class ARandRWidget(Gtk.DrawingArea):
         self._set_something('mode', output_name, res)
 
     def set_primary(self, output_name, primary):
-        output = self._xrandr.configuration.outputs[output_name]
+        output = self._swayoutput.configuration.outputs[output_name]
 
         if primary and not output.primary:
-            for output_2 in self._xrandr.outputs:
-                self._xrandr.configuration.outputs[output_2].primary = False
+            for output_2 in self._swayoutput.outputs:
+                self._swayoutput.configuration.outputs[output_2].primary = False
             output.primary = True
         elif not primary and output.primary:
             output.primary = False
@@ -184,8 +187,8 @@ class ARandRWidget(Gtk.DrawingArea):
         self.emit('changed')
 
     def set_active(self, output_name, active):
-        virtual_state = self._xrandr.state.virtual
-        output = self._xrandr.configuration.outputs[output_name]
+        virtual_state = self._swayoutput.state.virtual
+        output = self._swayoutput.configuration.outputs[output_name]
 
         if not active and output.active:
             output.active = False
@@ -195,7 +198,7 @@ class ARandRWidget(Gtk.DrawingArea):
                 output.active = True  # nothing can go wrong, position already set
             else:
                 pos = Position((0, 0))
-                for mode in self._xrandr.state.outputs[output_name].modes:
+                for mode in self._swayoutput.state.outputs[output_name].modes:
                     # determine first possible mode
                     if mode[0] <= virtual_state.max[0] and mode[1] <= virtual_state.max[1]:
                         first_mode = mode
@@ -217,8 +220,8 @@ class ARandRWidget(Gtk.DrawingArea):
     def do_expose_event(self, _event, context):
         context.rectangle(
             0, 0,
-            self._xrandr.state.virtual.max[0] // self.factor,
-            self._xrandr.state.virtual.max[1] // self.factor
+            self._swayoutput.state.virtual.max[0] // self.factor,
+            self._swayoutput.state.virtual.max[1] // self.factor
         )
         context.clip()
 
@@ -231,11 +234,11 @@ class ARandRWidget(Gtk.DrawingArea):
         context.scale(1 / self.factor, 1 / self.factor)
         context.set_line_width(self.factor * 1.5)
 
-        self._draw(self._xrandr, context)
+        self._draw(self._swayoutput, context)
 
-    def _draw(self, xrandr, context):  # pylint: disable=too-many-locals
-        cfg = xrandr.configuration
-        state = xrandr.state
+    def _draw(self, swayoutput, context):  # pylint: disable=too-many-locals
+        cfg = swayoutput.configuration
+        state = swayoutput.state
 
         context.set_source_rgb(0.25, 0.25, 0.25)
         context.rectangle(0, 0, *state.virtual.max)
@@ -296,8 +299,8 @@ class ARandRWidget(Gtk.DrawingArea):
         # using self.allocation as rect is offset by the menu bar.
         self.queue_draw_area(
             0, 0,
-            self._xrandr.state.virtual.max[0] // self.factor,
-            self._xrandr.state.virtual.max[1] // self.factor
+            self._swayoutput.state.virtual.max[0] // self.factor,
+            self._swayoutput.state.virtual.max[1] // self.factor
         )
         # this has the side effect of not painting out of the available
         # region output_name drag and drop
@@ -337,7 +340,7 @@ class ARandRWidget(Gtk.DrawingArea):
     def _get_point_outputs(self, x, y):
         x, y = x * self.factor, y * self.factor
         outputs = set()
-        for output_name, output in self._xrandr.configuration.outputs.items():
+        for output_name, output in self._swayoutput.configuration.outputs.items():
             if not output.active:
                 continue
             if (
@@ -359,9 +362,9 @@ class ARandRWidget(Gtk.DrawingArea):
 
     def contextmenu(self):
         menu = Gtk.Menu()
-        for output_name in self._xrandr.outputs:
-            output_config = self._xrandr.configuration.outputs[output_name]
-            output_state = self._xrandr.state.outputs[output_name]
+        for output_name in self._swayoutput.outputs:
+            output_config = self._swayoutput.configuration.outputs[output_name]
+            output_state = self._swayoutput.state.outputs[output_name]
 
             i = Gtk.MenuItem(output_name)
             i.props.submenu = self._contextmenu(output_name)
@@ -374,8 +377,8 @@ class ARandRWidget(Gtk.DrawingArea):
 
     def _contextmenu(self, output_name):  # pylint: disable=too-many-locals
         menu = Gtk.Menu()
-        output_config = self._xrandr.configuration.outputs[output_name]
-        output_state = self._xrandr.state.outputs[output_name]
+        output_config = self._swayoutput.configuration.outputs[output_name]
+        output_state = self._swayoutput.state.outputs[output_name]
 
         enabled = Gtk.CheckMenuItem(_("Active"))
         enabled.props.active = output_config.active
@@ -385,12 +388,12 @@ class ARandRWidget(Gtk.DrawingArea):
         menu.add(enabled)
 
         if output_config.active:
-            if Feature.PRIMARY in self._xrandr.features:
-                primary = Gtk.CheckMenuItem(_("Primary"))
-                primary.props.active = output_config.primary
-                primary.connect('activate', lambda menuitem: self.set_primary(
-                    output_name, menuitem.props.active))
-                menu.add(primary)
+            #if Feature.PRIMARY in self._swayoutput.features:
+            #    primary = Gtk.CheckMenuItem(_("Primary"))
+            #    primary.props.active = output_config.primary
+            #    primary.connect('activate', lambda menuitem: self.set_primary(
+            #        output_name, menuitem.props.active))
+            #    menu.add(primary)
 
             res_m = Gtk.Menu()
             for mode in output_state.modes:
@@ -477,11 +480,11 @@ class ARandRWidget(Gtk.DrawingArea):
         Gtk.drag_set_icon_stock(context, Gtk.STOCK_FULLSCREEN, 10, 10)
 
         self._draggingsnap = Snap(
-            self._xrandr.configuration.outputs[self._draggingoutput].size,
+            self._swayoutput.configuration.outputs[self._draggingoutput].size,
             self.factor * 5,
-            [(Position((0, 0)), self._xrandr.state.virtual.max)] + [
+            [(Position((0, 0)), self._swayoutput.state.virtual.max)] + [
                 (virtual_state.position, virtual_state.size)
-                for (k, virtual_state) in self._xrandr.configuration.outputs.items()
+                for (k, virtual_state) in self._swayoutput.configuration.outputs.items()
                 if k != self._draggingoutput and virtual_state.active
             ]
         )
@@ -496,10 +499,10 @@ class ARandRWidget(Gtk.DrawingArea):
 
         rel = x - self._draggingfrom[0], y - self._draggingfrom[1]
 
-        oldpos = self._xrandr.configuration.outputs[self._draggingoutput].position
+        oldpos = self._swayoutput.configuration.outputs[self._draggingoutput].position
         newpos = Position(
             (oldpos[0] + self.factor * rel[0], oldpos[1] + self.factor * rel[1]))
-        self._xrandr.configuration.outputs[
+        self._swayoutput.configuration.outputs[
             self._draggingoutput
         ].tentative_position = self._draggingsnap.suggest(newpos)
         self._force_repaint()
@@ -513,7 +516,7 @@ class ARandRWidget(Gtk.DrawingArea):
         try:
             self.set_position(
                 self._draggingoutput,
-                self._xrandr.configuration.outputs[self._draggingoutput].tentative_position
+                self._swayoutput.configuration.outputs[self._draggingoutput].tentative_position
             )
         except InadequateConfiguration:
             context.finish(False, False, time)
@@ -523,7 +526,7 @@ class ARandRWidget(Gtk.DrawingArea):
 
     def _dragend_cb(self, widget, context):
         try:
-            del self._xrandr.configuration.outputs[self._draggingoutput].tentative_position
+            del self._swayoutput.configuration.outputs[self._draggingoutput].tentative_position
         except (KeyError, AttributeError):
             pass  # already reloaded
         self._draggingoutput = None

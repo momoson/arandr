@@ -313,37 +313,38 @@ class Application:
 
 
 def main():
-    parser = optparse.OptionParser(
-        usage="%prog [savedfile]",
-        description="Another XRandrR GUI",
-        version="%%prog %s" % __version__
-    )
-    parser.add_option(
-        '--randr-display',
-        help=(
-            'Use D as display for xrandr '
-            '(but still show the GUI on the display from the environment; '
-            'e.g. `localhost:10.0`)'
-        ),
-        metavar='D'
-    )
-    parser.add_option(
-        '--force-version',
-        help='Even run with untested XRandR versions',
-        action='store_true'
-    )
+    #parser = optparse.OptionParser(
+    #    usage="%prog [savedfile]",
+    #    description="Another XRandrR GUI",
+    #    version="%%prog %s" % __version__
+    #)
+    
+    #parser.add_option(
+    #    '--randr-display',
+    #    help=(
+    #        'Use D as display for xrandr '
+    #        '(but still show the GUI on the display from the environment; '
+    #        'e.g. `localhost:10.0`)'
+    #    ),
+    #    metavar='D'
+    #)
+    #parser.add_option(
+    #    '--force-version',
+    #    help='Even run with untested XRandR versions',
+    #    action='store_true'
+    #)
 
-    (options, args) = parser.parse_args()
-    if not args:
-        file_to_open = None
-    elif len(args) == 1:
-        file_to_open = args[0]
-    else:
-        parser.usage()
+    #(options, args) = parser.parse_args()
+    #if not args:
+    #    file_to_open = None
+    #elif len(args) == 1:
+    #    file_to_open = args[0]
+    #else:
+    #    parser.usage()
 
     app = Application(
-        file=file_to_open,
-        randr_display=options.randr_display,
-        force_version=options.force_version
+        #file=file_to_open,
+        #randr_display=options.randr_display,
+        #force_version=options.force_version
     )
     app.run()
