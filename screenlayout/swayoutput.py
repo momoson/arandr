@@ -349,20 +349,31 @@ class SwayOutput:
         def commandlineargs(self):
             args = []
             for output_name, output in self.outputs.items():
-                args.append("--output")
+                args.append("output")
                 args.append(output_name)
                 if not output.active:
-                    args.append("--off")
+                    args.append("disable")
                 else:
-                    if Feature.PRIMARY in self._xrandr.features:
-                        if output.primary:
-                            args.append("--primary")
-                    args.append("--mode")
-                    args.append(str(output.mode.name))
-                    args.append("--pos")
-                    args.append(str(output.position))
-                    args.append("--rotate")
-                    args.append(output.rotation)
+                    args.append("enable")
+
+                    args.append("dpms")
+                    args.append("on" if output.dpms else "off")
+
+                    args.append("transform")
+                    args.append(repr(output.transform))
+
+                    #args.append("subpixel")
+                    #args.append(self.subpixel_hinting)
+
+                    args.append("scale")
+                    args.append(str(output.scale))
+
+                    args.append("pos")
+                    args.append(str(output.position.left))
+                    args.append(str(output.position.top))
+
+                    args.append("res")
+                    args.append(repr(output.mode))
             return args
 
         class OutputConfiguration:
