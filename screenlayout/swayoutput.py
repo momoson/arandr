@@ -315,7 +315,7 @@ class SwayOutput:
 
         class OutputConfiguration:
 
-            def __init__(self, active, dpms, scale, subpixel_hinting, rect, transform, mode):
+            def __init__(self, active, dpms, scale, subpixel_hinting, rect, transform, mode): # pylint: disable=too-many-arguments
                 self.active = active
                 self.dpms = dpms
                 self.scale = scale
