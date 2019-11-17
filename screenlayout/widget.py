@@ -205,7 +205,7 @@ class ARandRWidget(Gtk.DrawingArea):
 
         output.transform.flipped = flipped
 
-        #self._force_repaint()
+        self._force_repaint()
         self.emit('changed')
 
     def set_dpms(self, output_name, dpms):
@@ -302,6 +302,8 @@ class ARandRWidget(Gtk.DrawingArea):
             layoutsize = layout.get_pixel_size()
             layoutoffset = -layoutsize[0] / 2, -layoutsize[1] / 2
             context.move_to(*center)
+            if output.transform.flipped:
+                context.scale(-1,1)
             context.rotate(output.rotation.angle)
             context.rel_move_to(*layoutoffset)
 
