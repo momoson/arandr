@@ -29,7 +29,7 @@ from gi.repository import GObject, Gtk, Pango, PangoCairo, Gdk, GLib
 
 from .snap import Snap
 from .swayoutput import SwayOutput
-from .auxiliary import Position, NORMAL, ROTATIONS, InadequateConfiguration
+from .auxiliary import Position, Transformation, InadequateConfiguration
 from .i18n import _
 
 
