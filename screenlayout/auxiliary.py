@@ -138,23 +138,29 @@ class Rect(tuple):
     size = property(lambda self: Size(self[0:2]))
 
 
-class Rotation(str):
-    """String that represents a rotation by a multiple of 90 degree"""
+class Transformation:
+    """Class to represent the transformation of an output"""
 
-    def __init__(self, _original_me):
-        super().__init__()
-        if self not in ('left', 'right', 'normal', 'inverted'):
-            raise Exception("No know rotation.")
-    is_odd = property(lambda self: self in ('left', 'right'))
-    _angles = {'left': pi / 2, 'inverted': pi, 'right': 3 * pi / 2, 'normal': 0}
-    angle = property(lambda self: Rotation._angles[self])
+    def __init__(self, transform_str):
+        if "flipped" in transform_str:
+            self.flipped = True
+            rotation_str = transform_str.split('-')[-1]
+        else:
+            self.flipped = False
+            rotation_str = transform_str
+        try:
+            self.rotation = int(rotation_str)
+        except ValueError:
+            self.rotation = 0
 
     def __repr__(self):
-        return '<Rotation %s>' % self
-
-
-LEFT = Rotation('left')
-RIGHT = Rotation('right')
-INVERTED = Rotation('inverted')
-NORMAL = Rotation('normal')
-ROTATIONS = (NORMAL, RIGHT, INVERTED, LEFT)
+        representation = ""
+        if self.flipped:
+            representation += "flipped"
+            if self.rotation != 0:
+                representation += "-"
+        if self.rotation != 0:
+            representation += "{:d}".format(self.rotation)
+        elif not self.flipped:
+            representation = "normal"
+            
