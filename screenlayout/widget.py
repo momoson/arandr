@@ -22,6 +22,8 @@ from __future__ import division
 import os
 import stat
 
+from math import isclose
+
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('PangoCairo', '1.0')
@@ -174,6 +176,8 @@ class ARandRWidget(Gtk.DrawingArea):
     def set_resolution(self, output_name, res):
         self._set_something('mode', output_name, res)
 
+    def set_scale(self, output_name, scale):
+        self._set_something('scale', output_name, scale)
 
     def set_active(self, output_name, active):
         output = self._swayoutput.configuration.outputs[output_name]
@@ -443,13 +447,64 @@ class ARandRWidget(Gtk.DrawingArea):
                     i.props.sensitive = False
                 or_m.add(i)
 
+            scale_values = [1,2,4,8]
+            for scale in scale_values:
+                if isclose(scale, output_config.scale):
+                    break
+            else:
+                scale_values += [output_config.scale]
+            scale_values.sort()
+
+            def _scale_set(_menuitem, output_name, scale):
+                try:
+                    self.set_scale(output_name, scale)
+                except InadequateConfiguration as exc:
+                    self.error_message(
+                        _("This scale is not possible here: %s") % exc
+                    )
+
+            def _scale_set_custom(_menuitem, output_name):
+                dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.OK_CANCEL, _("New scaling for output %s" % output_name))
+                dialog.set_title(_("Custom scale"))
+                dialogBox = dialog.get_content_area()
+                entry = Gtk.Entry()
+                entry.set_size_request(100,0)
+                dialogBox.pack_end(entry, False, False, 0)
+                dialog.show_all()
+                response = dialog.run()
+                if response != Gtk.ResponseType.OK:
+                    dialog.destroy()
+                    return
+                try:
+                    scale = float(entry.get_text())
+                except ValueError:
+                    self.error_message(_("The entered scaling value is not acceptable"))
+                    return
+                finally:
+                    dialog.destroy()
+                _scale_set(_menuitem, output_name, scale)
+
+            scale_m = Gtk.Menu()
+            for scale in scale_values:
+                i = Gtk.CheckMenuItem(str(scale))
+                i.props.draw_as_radio = True
+                i.props.active = isclose(output_config.scale, scale)
+                i.connect('activate', _scale_set, output_name, scale)
+                scale_m.add(i)
+            i = Gtk.MenuItem(_("Custom"))
+            i.connect('activate', _scale_set_custom, output_name)
+            scale_m.add(i)
+
             res_i = Gtk.MenuItem(_("Resolution"))
             res_i.props.submenu = res_m
             or_i = Gtk.MenuItem(_("Orientation"))
             or_i.props.submenu = or_m
+            scale_i = Gtk.MenuItem(_("Scale"))
+            scale_i.props.submenu = scale_m
 
             menu.add(res_i)
             menu.add(or_i)
+            menu.add(scale_i)
 
         menu.show_all()
         return menu
