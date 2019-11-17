@@ -20,12 +20,12 @@
 
 import optparse
 
-import screenlayout.xrandr
+import screenlayout.swayoutput
 import screenlayout.meta
 
 p = optparse.OptionParser(description=__doc__, usage="%prog", version=screenlayout.meta.__version__)
 p.parse_args()
 
-current = screenlayout.xrandr.XRandR()
+current = screenlayout.swayoutput.SwayOutput()
 current.load_from_x()
 print(current.save_to_shellscript_string(["%(xrandr)s"]).strip())
