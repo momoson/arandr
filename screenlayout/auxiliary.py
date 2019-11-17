@@ -162,6 +162,7 @@ class Transformation:
             representation += "{:d}".format(self.rotation)
         elif not self.flipped:
             representation = "normal"
+        return representation
 
 class Rotation(int):
     def __new__(cls, rotation_deg):
