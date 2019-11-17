@@ -20,7 +20,6 @@
 
 from math import pi
 
-
 class FileLoadError(Exception):
     pass
 
@@ -55,10 +54,10 @@ class BetterList(list):
 class Mode(tuple):
     """3-tuple of width and height and rate"""
     def __new__(cls, width, height, rate=None):
-        return super(Mode, cls).__new__(cls,(width,height,rate/1000 if rate is not None else None))
+        return super(Mode, cls).__new__(cls, (width, height, rate/1000 if rate is not None else None))
 
     def __repr__(self):
-        return "{}x{}".format(self[0],self[1]) + "@{}Hz".format(self[2]) if self[2] is not None else ""
+        return "{}x{}".format(self[0], self[1]) + "@{}Hz".format(self[2]) if self[2] is not None else ""
 
     width = property(lambda self: self[0])
     heigth = property(lambda self: self[1])
@@ -163,14 +162,12 @@ class Transformation:
             representation += "{:d}".format(self.rotation)
         elif not self.flipped:
             representation = "normal"
-            
-from math import pi
 
 class Rotation(int):
-    def __new__(cls,rotation_deg):
+    def __new__(cls, rotation_deg):
         value = round(rotation_deg/90)*90
-        assert value < 360 and value >=0
-        return super(Rotation,cls).__new__(cls,value)
+        assert 0 <= value < 360
+        return super(Rotation, cls).__new__(cls, value)
 
     @property
     def angle(self):
@@ -178,4 +175,4 @@ class Rotation(int):
 
     @property
     def is_odd(self):
-        return self%180!=0
+        return self%180 != 0
