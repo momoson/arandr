@@ -415,35 +415,35 @@ class ARandRWidget(Gtk.DrawingArea):
 
         if output_config.active:
 
+            def _res_set(_menuitem, output_name, mode):
+                try:
+                    self.set_resolution(output_name, mode)
+                except InadequateConfiguration as exc:
+                    self.error_message(
+                        _("Setting this resolution is not possible here: %s") % exc
+                    )
             res_m = Gtk.Menu()
             for mode in output_state.modes:
                 i = Gtk.CheckMenuItem(str(mode))
                 i.props.draw_as_radio = True
-                i.props.active = (output_config.mode.name == mode.name)
+                i.props.active = (output_config.mode == mode)
 
-                def _res_set(_menuitem, output_name, mode):
-                    try:
-                        self.set_resolution(output_name, mode)
-                    except InadequateConfiguration as exc:
-                        self.error_message(
-                            _("Setting this resolution is not possible here: %s") % exc
-                        )
                 i.connect('activate', _res_set, output_name, mode)
                 res_m.add(i)
 
+            def _rot_set(_menuitem, output_name, rotation):
+                try:
+                    self.set_rotation(output_name, rotation)
+                except InadequateConfiguration as exc:
+                    self.error_message(
+                        _("This orientation is not possible here: %s") % exc
+                    )
             or_m = Gtk.Menu()
-            for rotation in ROTATIONS:
-                i = Gtk.CheckMenuItem("%s" % rotation)
+            for rotation in output_state.rotations:
+                i = Gtk.CheckMenuItem("%d" % rotation)
                 i.props.draw_as_radio = True
                 i.props.active = (output_config.rotation == rotation)
 
-                def _rot_set(_menuitem, output_name, rotation):
-                    try:
-                        self.set_rotation(output_name, rotation)
-                    except InadequateConfiguration as exc:
-                        self.error_message(
-                            _("This orientation is not possible here: %s") % exc
-                        )
                 i.connect('activate', _rot_set, output_name, rotation)
                 if rotation not in output_state.rotations:
                     i.props.sensitive = False
