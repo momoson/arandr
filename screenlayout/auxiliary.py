@@ -149,7 +149,7 @@ class Transformation:
             self.flipped = False
             rotation_str = transform_str
         try:
-            self.rotation = int(rotation_str)
+            self.rotation = Rotation(int(rotation_str))
         except ValueError:
             self.rotation = 0
 
@@ -164,3 +164,18 @@ class Transformation:
         elif not self.flipped:
             representation = "normal"
             
+from math import pi
+
+class Rotation(int):
+    def __new__(cls,rotation_deg):
+        value = round(rotation_deg/90)*90
+        assert value < 360 and value >=0
+        return super(Rotation,cls).__new__(cls,value)
+
+    @property
+    def angle(self):
+        return self/180*pi
+
+    @property
+    def is_odd(self):
+        return self%180!=0
