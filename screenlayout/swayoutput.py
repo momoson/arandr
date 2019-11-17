@@ -248,19 +248,12 @@ class SwayOutput:
             self.outputs = {}
 
         def __repr__(self):
-            return '<%s for %d Outputs, %d connected>' % (
-                type(self).__name__, len(self.outputs),
-                len([x for x in self.outputs.values() if x.connected])
-            )
-
-        class Virtual:
-            def __init__(self, min_mode, max_mode):
-                self.min = min_mode
-                self.max = max_mode
+            return '<%s for %d Outputs>' % (
+                type(self).__name__, len(self.outputs)
+                )
 
         class Output:
             rotations = None
-            connected = None
 
             def __init__(self, name):
                 self.name = name
