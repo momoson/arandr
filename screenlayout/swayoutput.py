@@ -141,8 +141,6 @@ class SwayOutput:
 
         output_dict = self._load_raw_lines()
 
-        self._load_parse_screenline("")
-
         for output_el in output_dict:
             output = self.state.Output(output_el['name'])
 
@@ -197,32 +195,6 @@ class SwayOutput:
             )
             output_dict={}
         return output_dict
-
-    def _load_parse_screenline(self, screenline):
-        #assert screenline is not None
-        #ssplit = screenline.split(" ")
-
-        #ssplit_expect = ["Screen", None, "minimum", None, "x", None,
-        #                 "current", None, "x", None, "maximum", None, "x", None]
-        #assert all(a == b for (a, b) in zip(
-        #    ssplit, ssplit_expect) if b is not None)
-
-        #self.state.virtual = self.state.Virtual(
-        #    min_mode=Size((int(ssplit[3]), int(ssplit[5][:-1]))),
-        #    max_mode=Size((int(ssplit[11]), int(ssplit[13])))
-        #)
-        #self.configuration.virtual = Size(
-        #    (int(ssplit[7]), int(ssplit[9][:-1]))
-        #)
-
-        self.state.virtual = self.state.Virtual(
-            min_mode=Size((16, 16)),
-            max_mode=Size((30000,30000))
-        )
-        self.configuration.virtual = Size(
-            (5760,1080)
-        )
-
 
     #################### saving ####################
 
