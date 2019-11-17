@@ -150,7 +150,7 @@ class Transformation:
         try:
             self.rotation = Rotation(int(rotation_str))
         except ValueError:
-            self.rotation = 0
+            self.rotation = Rotation(0)
 
     def __repr__(self):
         representation = ""

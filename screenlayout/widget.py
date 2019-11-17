@@ -195,7 +195,7 @@ class ARandRWidget(Gtk.DrawingArea):
                 output.active = True
                 output.position = pos
                 output.mode = first_mode
-                output.rotation = NORMAL
+                output.rotation = Rotation(0)
 
         self._force_repaint()
         self.emit('changed')
