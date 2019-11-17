@@ -52,6 +52,17 @@ class BetterList(list):
             yield x
         yield self[indices[-1] + 1:]
 
+class Mode(tuple):
+    """3-tuple of width and height and rate"""
+    def __new__(cls, width, height, rate=None):
+        return super(Mode, cls).__new__(cls,(width,height,rate/1000 if rate is not None else None))
+
+    def __repr__(self):
+        return "{}x{}".format(self[0],self[1]) + "@{}Hz".format(self[2]) if self[2] is not None else ""
+
+    width = property(lambda self: self[0])
+    heigth = property(lambda self: self[1])
+    rate = property(lambda self: self[2])
 
 class Size(tuple):
     """2-tuple of width and height that can be created from a '<width>x<height>' string"""

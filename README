@@ -1,9 +1,11 @@
-==========================
-ARandR: Another XRandR GUI
-==========================
+==========================================
+ARandR-sway: ARandR similar swayoutput GUI
+=========================================
 
 
-ARandR is designed to provide a simple visual front end for XRandR_. Relative monitor positions are shown graphically and can be changed in a drag-and-drop way.
+ARandR-sway is designed to provide a simple visual front end for sway-output.
+Relative monitor positions are shown graphically and can be changed in a drag-and-drop way.
+The GUI is kept similar to the original arandr to make migration as easy as possible.
 
 
 
