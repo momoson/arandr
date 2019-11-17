@@ -174,20 +174,6 @@ class ARandRWidget(Gtk.DrawingArea):
     def set_resolution(self, output_name, res):
         self._set_something('mode', output_name, res)
 
-    def set_primary(self, output_name, primary):
-        output = self._swayoutput.configuration.outputs[output_name]
-
-        if primary and not output.primary:
-            for output_2 in self._swayoutput.outputs:
-                self._swayoutput.configuration.outputs[output_2].primary = False
-            output.primary = True
-        elif not primary and output.primary:
-            output.primary = False
-        else:
-            return
-
-        self._force_repaint()
-        self.emit('changed')
 
     def set_active(self, output_name, active):
         output = self._swayoutput.configuration.outputs[output_name]
@@ -305,8 +291,6 @@ class ARandRWidget(Gtk.DrawingArea):
             output_name_markup = GLib.markup_escape_text(output_name)
             layout = PangoCairo.create_layout(context)
             layout.set_font_description(newdescr)
-            if output.primary:
-                output_name_markup = "<u>%s</u>" % output_name_markup
 
             layout.set_markup(output_name_markup, -1)
 
