@@ -121,14 +121,10 @@ class Position(tuple):
         return "%dx%d" % self
 
 
-class Geometry(tuple):
+class Rect(tuple):
     """4-tuple of width, height, left and top that can be created from an XParseGeometry style string"""
-    # FIXME: use XParseGeometry instead of an own incomplete implementation
-    def __new__(cls, width, height=None, left=None, top=None):
-        if isinstance(width, str):
-            width, rest = width.split("x")
-            height, left, top = rest.split("+")
-        return super(Geometry, cls).__new__(cls, (int(width), int(height), int(left), int(top)))
+    def __new__(cls, width, height, left, top):
+        return super(Rect, cls).__new__(cls, (int(width), int(height), int(left), int(top)))
 
     def __str__(self):
         return "%dx%d+%d+%d" % self
