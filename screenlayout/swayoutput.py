@@ -24,7 +24,7 @@ from functools import reduce
 
 from .auxiliary import (
     BetterList, Size, Position, Rect, Transformation, FileLoadError, FileSyntaxError, Mode,
-    InadequateConfiguration, NamedSize,
+    InadequateConfiguration, NamedSize, Rotation
 )
 from .i18n import _
 
@@ -146,57 +146,41 @@ class SwayOutput:
         for output_el in output_dict:
             output = self.state.Output(output_el['name'])
 
-            output.connected = True # FIXME
-
-            primary = False
-            if 'primary' in output_el.keys():
-                primary = output_el['primary']
-
             active = False
             if 'active' in output_el.keys():
                 active = output_el['active']
 
+            dpms = False
+            if 'dpms' in output_el.keys():
+                dpms = output_el['dpms']
+
+            scale = 1.0
+            if 'scale' in output_el.keys():
+                scale = output_el['scale']
+
+            subpixel_hinting = "unknown"
+            if 'subpixel_hinting' in output_el.keys():
+                subpixel_hinting = output_el['subpixel_hinting']
+
             if active:
-                geometry_dict = output_el['rect']
-                geometry = Geometry(geometry_dict['width'],geometry_dict['height'],geometry_dict['x'],geometry_dict['y'])
+                rect_dict = output_el['rect']
+                rect = Rect(rect_dict['width'],rect_dict['height'],rect_dict['x'],rect_dict['y'])
 
-                current_rotation = NORMAL # get this from transform
+                transform = Transformation(output_el['transform'])
             else:
-                geometry = None
-                current_rotation = None
+                rect = None
+                transform = None
 
-            output.rotations = set()
-            #for rotation in ROTATIONS:
-            #    if rotation in headline:
-            #        output.rotations.add(rotation)
+            output.rotations = [Rotation(0),Rotation(90),Rotation(180),Rotation(270)]
 
-            currentname = None
-            #for mode in output_el['modes']:
-            #    name, _mode_raw = detail[0:2]
-            #    mode_id = _mode_raw.strip("()")
-            #    try:
-            #        size = Size([int(w), int(h)])
-            #    except ValueError:
-            #        raise Exception(
-            #            "Output %s parse error: modename %s modeid %s." % (output.name, name, mode_id)
-            #        )
-            #    if "*current" in detail:
-            #        currentname = name
-            #    for x in ["+preferred", "*current"]:
-            #        if x in detail:
-            #            detail.remove(x)
-
-            #    for old_mode in output.modes:
-            #        if old_mode.name == name:
-            #            if tuple(old_mode) != tuple(size):
-            #                warnings.warn((
-            #                    "Supressing duplicate mode %s even "
-            #                    "though it has different resolutions (%s, %s)."
-            #                ) % (name, size, old_mode))
-            #            break
-            #    else:
-            #        # the mode is really new
-            #        output.modes.append(NamedSize(size, name=name))
+            for mode_dict in output_el['modes']:
+                mode = Mode(mode_dict['width'], mode_dict['height'], mode_dict['refresh'])
+                
+                for already_added_mode in output.modes:
+                    if already_added_mode == mode:
+                        break
+                else: # add only if it is new
+                    output.modes.append(mode)
 
             self.state.outputs[output.name] = output
             self.configuration.outputs[output.name] = self.configuration.OutputConfiguration(
