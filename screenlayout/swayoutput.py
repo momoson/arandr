@@ -23,8 +23,8 @@ import json
 from functools import reduce
 
 from .auxiliary import (
-    BetterList, Size, Position, Geometry, FileLoadError, FileSyntaxError,
-    InadequateConfiguration, Rotation, ROTATIONS, NORMAL, NamedSize,
+    BetterList, Size, Position, Rect, Transformation, FileLoadError, FileSyntaxError, Mode,
+    InadequateConfiguration, NamedSize,
 )
 from .i18n import _
 
