@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""Wrapper around command line xrandr (mostly 1.2 per output features supported)"""
+"""Wrapper around command line swaymsg"""
 # pylint: disable=too-few-public-methods,wrong-import-position,missing-docstring,fixme
 
 import os
