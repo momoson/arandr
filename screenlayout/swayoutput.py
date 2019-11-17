@@ -200,7 +200,7 @@ class SwayOutput:
 
             self.state.outputs[output.name] = output
             self.configuration.outputs[output.name] = self.configuration.OutputConfiguration(
-                active, primary, geometry, current_rotation, currentname
+                active, dpms, scale, subpixel_hinting, rect, transform, mode
             )
 
     def _load_raw_lines(self):
@@ -367,18 +367,17 @@ class SwayOutput:
 
         class OutputConfiguration:
 
-            def __init__(self, active, primary, geometry, rotation, modename):
+            def __init__(self, active, dpms, scale, subpixel_hinting, rect, transform, mode):
                 self.active = active
-                self.primary = primary
-                if active:
-                    self.position = geometry.position
-                    self.rotation = rotation
-                    if rotation.is_odd:
-                        self.mode = NamedSize(
-                            Size(reversed(geometry.size)), name=modename)
-                    else:
-                        self.mode = NamedSize(geometry.size, name=modename)
+                self.dpms = dpms
+                self.scale = scale
+                self.subpixel_hinting = subpixel_hinting
+                self.rect = rect
+                self.transform = transform
+                self.mode = mode
 
-            size = property(lambda self: NamedSize(
-                Size(reversed(self.mode)), name=self.mode.name
-            ) if self.rotation.is_odd else self.mode)
+                if active:
+                    self.position = rect.position
+                    self.rotation = transform.rotation
+                    self.size = rect.size
+
