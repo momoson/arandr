@@ -223,11 +223,9 @@ class SwayOutput:
         self._run(*self.configuration.commandlineargs())
 
     def check_configuration(self):
-        vmax = self.state.virtual.max
-
         for output_name in self.outputs:
             output_config = self.configuration.outputs[output_name]
-            # output_state = self.state.outputs[output_name]
+            output_state = self.state.outputs[output_name]
 
             if not output_config.active:
                 continue
@@ -241,23 +239,10 @@ class SwayOutput:
             # if output_config.mode not in output_state.modes:
             #    raise InadequateConfiguration("Mode not allowed.")
 
-            x = output_config.position[0] + output_config.size[0]
-            y = output_config.position[1] + output_config.size[1]
-
-            if x > vmax[0] or y > vmax[1]:
-                raise InadequateConfiguration(
-                    _("A part of an output is outside the virtual screen."))
-
-            if output_config.position[0] < 0 or output_config.position[1] < 0:
-                raise InadequateConfiguration(
-                    _("An output is outside the virtual screen."))
-
     #################### sub objects ####################
 
     class State:
         """Represents everything that can not be set by swayoutput."""
-
-        virtual = None
 
         def __init__(self):
             self.outputs = {}
@@ -289,8 +274,6 @@ class SwayOutput:
         Represents everything that can be set by swayoutput
         (and is therefore subject to saving and loading from files)
         """
-
-        virtual = None
 
         def __init__(self, swayoutput):
             self.outputs = {}
