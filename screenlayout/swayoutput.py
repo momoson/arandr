@@ -63,8 +63,9 @@ class SwayOutput:
                 "swaymsg wrote to stderr, but did not report an error (Message was: %r)" % err)
         return ret.decode('utf-8')
 
-    def _run(self, *args):
-        self._output(*args)
+    def _run(self, *args_sets):
+        for args in args_sets:
+            self._output(*args)
 
     #################### loading ####################
 
@@ -285,8 +286,9 @@ class SwayOutput:
             )
 
         def commandlineargs(self):
-            args = []
+            args_sets = []
             for output_name, output in self.outputs.items():
+                args = []
                 args.append("output")
                 args.append(output_name)
                 if not output.active:
@@ -300,8 +302,9 @@ class SwayOutput:
                     args.append("transform")
                     args.append(repr(output.transform))
 
-                    #args.append("subpixel")
-                    #args.append(self.subpixel_hinting)
+                    if output.subpixel_hinting != 'unknown':
+                        args.append("subpixel")
+                        args.append(output.subpixel_hinting)
 
                     args.append("scale")
                     args.append(str(output.scale))
@@ -312,7 +315,8 @@ class SwayOutput:
 
                     args.append("res")
                     args.append(repr(output.mode))
-            return args
+                args_sets.append(args)
+            return args_sets
 
         class OutputConfiguration:
 
