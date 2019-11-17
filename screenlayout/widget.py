@@ -26,6 +26,8 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import GObject, Gtk, Pango, PangoCairo, Gdk, GLib
+from cairo import LinearGradient
+from cairo import Extend
 
 from .snap import Snap
 from .swayoutput import SwayOutput
@@ -274,9 +276,30 @@ class ARandRWidget(Gtk.DrawingArea):
             center = rect[0] + rect[2] / 2, rect[1] + rect[3] / 2
 
             # paint rectangle
-            context.set_source_rgba(1, 1, 1, 0.7)
             context.rectangle(*rect)
+            context.set_source_rgba(1, 1, 1, 0.7)
             context.fill()
+
+            # show if it is blacked out
+            if not output.dpms:
+                context.rectangle(*rect)
+                pattern = LinearGradient(0,0,5*self.factor,5*self.factor)
+                pattern.add_color_stop_rgba(0.0,0,0,0,0.7)
+                pattern.add_color_stop_rgba(0.47,0,0,0,0.7)
+                pattern.add_color_stop_rgba(0.53,0,0,0,0)
+                pattern.set_extend(Extend.REFLECT)
+                context.set_source(pattern)
+                context.fill()
+                context.rectangle(*rect)
+                pattern = LinearGradient(0,0,-5*self.factor,5*self.factor)
+                pattern.add_color_stop_rgba(0.0,0,0,0,0.7)
+                pattern.add_color_stop_rgba(0.47,0,0,0,0.7)
+                pattern.add_color_stop_rgba(0.53,0,0,0,0)
+                pattern.set_extend(Extend.REFLECT)
+                context.set_source(pattern)
+                context.fill()
+
+
             context.set_source_rgb(0, 0, 0)
             context.rectangle(*rect)
             context.stroke()
