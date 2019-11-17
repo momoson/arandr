@@ -46,7 +46,7 @@ class ARandRWidget(Gtk.DrawingArea):
         'changed': (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE, ()),
     }
 
-    def __init__(self, window, factor=8, display=None, force_version=False):
+    def __init__(self, window, factor=8, display=None):
         super(ARandRWidget, self).__init__()
 
         self.window = window
@@ -61,7 +61,7 @@ class ARandRWidget(Gtk.DrawingArea):
 
         self.setup_draganddrop()
 
-        self._swayoutput = SwayOutput(display=display, force_version=force_version)
+        self._swayoutput = SwayOutput(display=display)
 
         self.connect('draw', self.do_expose_event)
 

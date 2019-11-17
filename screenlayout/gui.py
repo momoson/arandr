@@ -109,7 +109,7 @@ class Application:
     </ui>
     """
 
-    def __init__(self, file=None, randr_display=None, force_version=False):
+    def __init__(self, file=None, randr_display=None):
         self.window = window = Gtk.Window()
         window.props.title = "Screen Layout Editor"
 
@@ -155,7 +155,7 @@ class Application:
 
         # widget
         self.widget = widget.ARandRWidget(
-            display=randr_display, force_version=force_version,
+            display=randr_display,
             window=self.window
         )
         if file is None:
@@ -345,6 +345,5 @@ def main():
     app = Application(
         #file=file_to_open,
         #randr_display=options.randr_display,
-        #force_version=options.force_version
     )
     app.run()

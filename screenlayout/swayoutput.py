@@ -36,7 +36,7 @@ class SwayOutput:
     configuration = None
     state = None
 
-    def __init__(self, display=None, force_version=False):
+    def __init__(self, display=None):
         self.environ = dict(os.environ)
 
     def _get_outputs(self):
