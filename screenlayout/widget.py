@@ -113,9 +113,10 @@ class ARandRWidget(Gtk.DrawingArea):
         )
         # have some buffer
         usable_size = int(max_gapless * 1.1)
-        # don't request too large a window, but make sure very possible compination fits
-        xdim = min(self._swayoutput.state.virtual.max[0], usable_size)
-        ydim = min(self._swayoutput.state.virtual.max[1], usable_size)
+        # don't request too large a window, but make sure every possible compination fits
+        xdim = usable_size
+        ydim = usable_size
+
         self.set_size_request(xdim // self.factor, ydim // self.factor)
 
     #################### loading ####################
@@ -189,7 +190,6 @@ class ARandRWidget(Gtk.DrawingArea):
         self.emit('changed')
 
     def set_active(self, output_name, active):
-        virtual_state = self._swayoutput.state.virtual
         output = self._swayoutput.configuration.outputs[output_name]
 
         if not active and output.active:
@@ -200,14 +200,7 @@ class ARandRWidget(Gtk.DrawingArea):
                 output.active = True  # nothing can go wrong, position already set
             else:
                 pos = Position((0, 0))
-                for mode in self._swayoutput.state.outputs[output_name].modes:
-                    # determine first possible mode
-                    if mode[0] <= virtual_state.max[0] and mode[1] <= virtual_state.max[1]:
-                        first_mode = mode
-                        break
-                else:
-                    raise InadequateConfiguration(
-                        "Smallest mode too large for virtual.")
+                first_mode = self._swayoutput.state.outputs[output_name].modes[-1] # This is typical the largest one
 
                 output.active = True
                 output.position = pos
@@ -236,16 +229,18 @@ class ARandRWidget(Gtk.DrawingArea):
     #################### painting ####################
 
     def do_expose_event(self, _event, context):
+        allocation = self.get_allocation()
+
         context.rectangle(
             0, 0,
-            self._swayoutput.state.virtual.max[0] // self.factor,
-            self._swayoutput.state.virtual.max[1] // self.factor
+            allocation.width, allocation.height
         )
         context.clip()
 
         # clear
-        context.set_source_rgb(0, 0, 0)
-        context.rectangle(0, 0, *self.window.get_size())
+
+        context.set_source_rgb(0.25, 0.25, 0.25)
+        context.rectangle(0, 0, allocation.width, allocation.height)
         context.fill()
         context.save()
 
@@ -257,14 +252,6 @@ class ARandRWidget(Gtk.DrawingArea):
     def _draw(self, swayoutput, context):  # pylint: disable=too-many-locals
         cfg = swayoutput.configuration
         state = swayoutput.state
-
-        context.set_source_rgb(0.25, 0.25, 0.25)
-        context.rectangle(0, 0, *state.virtual.max)
-        context.fill()
-
-        context.set_source_rgb(0.5, 0.5, 0.5)
-        context.rectangle(0, 0, *cfg.virtual)
-        context.fill()
 
         for output_name in self.sequence:
             output = cfg.outputs[output_name]
@@ -336,13 +323,10 @@ class ARandRWidget(Gtk.DrawingArea):
 
     def _force_repaint(self):
         # using self.allocation as rect is offset by the menu bar.
+        allocation = self.get_allocation()
         self.queue_draw_area(
-            0, 0,
-            self._swayoutput.state.virtual.max[0] // self.factor,
-            self._swayoutput.state.virtual.max[1] // self.factor
+            0, 0, allocation.width, allocation.height
         )
-        # this has the side effect of not painting out of the available
-        # region output_name drag and drop
 
     #################### click handling ####################
 
