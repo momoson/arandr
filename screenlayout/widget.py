@@ -215,6 +215,22 @@ class ARandRWidget(Gtk.DrawingArea):
         self._force_repaint()
         self.emit('changed')
 
+    def set_flipped(self, output_name, flipped):
+        output = self._swayoutput.configuration.outputs[output_name]
+
+        output.transform.flipped = flipped
+
+        #self._force_repaint()
+        self.emit('changed')
+
+    def set_dpms(self, output_name, dpms):
+        output = self._swayoutput.configuration.outputs[output_name]
+
+        output.dpms = dpms
+
+        self._force_repaint()
+        self.emit('changed')
+
     #################### painting ####################
 
     def do_expose_event(self, _event, context):
@@ -388,12 +404,19 @@ class ARandRWidget(Gtk.DrawingArea):
         menu.add(enabled)
 
         if output_config.active:
-            #if Feature.PRIMARY in self._swayoutput.features:
-            #    primary = Gtk.CheckMenuItem(_("Primary"))
-            #    primary.props.active = output_config.primary
-            #    primary.connect('activate', lambda menuitem: self.set_primary(
-            #        output_name, menuitem.props.active))
-            #    menu.add(primary)
+            flipped = Gtk.CheckMenuItem(_("Flipped"))
+            flipped.props.active = output_config.transform.flipped
+            flipped.connect('activate', lambda menuitem: self.set_flipped(
+                 output_name, menuitem.props.active))
+            menu.add(flipped)
+
+            blacked_out = Gtk.CheckMenuItem(_("Blacked out"))
+            blacked_out.props.active = not output_config.dpms
+            blacked_out.connect('activate', lambda menuitem: self.set_dpms(
+                 output_name, not menuitem.props.active))
+            menu.add(blacked_out)
+
+        if output_config.active:
 
             res_m = Gtk.Menu()
             for mode in output_state.modes:
