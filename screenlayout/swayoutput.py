@@ -20,7 +20,6 @@ import os
 import subprocess
 import warnings
 import json
-from functools import reduce
 
 from .auxiliary import (
     BetterList, Size, Position, Rect, Transformation, FileLoadError, FileSyntaxError, Mode,
@@ -162,18 +161,18 @@ class SwayOutput:
 
             if active:
                 rect_dict = output_el['rect']
-                rect = Rect(rect_dict['width'],rect_dict['height'],rect_dict['x'],rect_dict['y'])
+                rect = Rect(rect_dict['width'], rect_dict['height'], rect_dict['x'], rect_dict['y'])
 
                 transform = Transformation(output_el['transform'])
             else:
                 rect = None
                 transform = None
 
-            output.rotations = [Rotation(0),Rotation(90),Rotation(180),Rotation(270)]
+            output.rotations = [Rotation(0), Rotation(90), Rotation(180), Rotation(270)]
 
             for mode_dict in output_el['modes']:
                 mode = Mode(mode_dict['width'], mode_dict['height'], mode_dict['refresh'])
-                
+
                 for already_added_mode in output.modes:
                     if already_added_mode == mode:
                         break
@@ -186,14 +185,14 @@ class SwayOutput:
             )
 
     def _load_raw_lines(self):
-        outputs = self._output("-t","get_outputs","-r")
+        outputs = self._output("-t", "get_outputs", "-r")
         try:
             output_dict = json.loads(outputs)
         except json.decoder.JSONDecodeError:
+            output_dict = {}
             raise Exception(
                 "Output of swaymsg -t get_outputs -r not parsable as json"
             )
-            output_dict={}
         return output_dict
 
     #################### saving ####################
@@ -225,7 +224,7 @@ class SwayOutput:
     def check_configuration(self):
         for output_name in self.outputs:
             output_config = self.configuration.outputs[output_name]
-            output_state = self.state.outputs[output_name]
+            #output_state = self.state.outputs[output_name]
 
             if not output_config.active:
                 continue
@@ -330,4 +329,3 @@ class SwayOutput:
                     self.position = rect.position
                     self.rotation = transform.rotation
                     self.size = rect.size
-
