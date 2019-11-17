@@ -38,6 +38,8 @@ class SwayOutput:
 
     def __init__(self, display=None):
         self.environ = dict(os.environ)
+        if display:
+            self.environ['DISPLAY'] = display
 
     def _get_outputs(self):
         assert self.state.outputs.keys() == self.configuration.outputs.keys()
