@@ -411,8 +411,6 @@ class ARandRWidget(Gtk.DrawingArea):
                  output_name, not menuitem.props.active))
             menu.add(blacked_out)
 
-        if output_config.active:
-
             def _res_set(_menuitem, output_name, mode):
                 try:
                     self.set_resolution(output_name, mode)
