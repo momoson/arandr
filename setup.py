@@ -83,7 +83,7 @@ class build_trans(NoOptionCommand):
         self.mkpath(os.path.join("build", "locale")) # create directory even if there are no files, otherwise install would complain
         for po in glob.glob(os.path.join(PO_DIR,'*.po')):
             lang = os.path.basename(po[:-3])
-            mo = os.path.join('build', 'locale', lang, 'LC_MESSAGES', 'arandr.mo')
+            mo = os.path.join('build', 'locale', lang, 'LC_MESSAGES', 'arandr-sway.mo')
 
             directory = os.path.dirname(mo)
             self.mkpath(directory)
@@ -101,8 +101,8 @@ class build_man(NoOptionCommand):
         self.mkpath('build')
 
         for (sourcefile, gzfile) in [
-                ('data/arandr.1.txt', os.path.join('build', 'arandr.1.gz')),
-                ('data/unxrandr.1.txt', os.path.join('build', 'unxrandr.1.gz')),
+                ('data/arandr-sway.1.txt', os.path.join('build', 'arandr-sway.1.gz')),
+                ('data/unxrandr-sway.1.txt', os.path.join('build', 'unxrandr-sway.1.gz')),
                 ]:
 
             if newer(sourcefile, gzfile):
@@ -204,7 +204,7 @@ class install_data(_install_data):
     def run(self):
         for lang in os.listdir('build/locale/'):
             lang_dir = os.path.join('share', 'locale', lang, 'LC_MESSAGES')
-            lang_file = os.path.join('build', 'locale', lang, 'LC_MESSAGES', 'arandr.mo')
+            lang_file = os.path.join('build', 'locale', lang, 'LC_MESSAGES', 'arandr-sway.mo')
             self.data_files.append((lang_dir, [lang_file]))
 
         _install_data.run(self)
@@ -218,7 +218,7 @@ class clean(_clean):
     def run(self):
         if self.all:
             dirs = ['build/locale']
-            files = ['build/arandr.1.gz', 'build/unxrandr.1.gz']
+            files = ['build/arandr-sway.1.gz', 'build/unxrandr-sway.1.gz']
             for directory in dirs:
                 if os.path.exists(directory):
                     remove_tree(directory, dry_run=self.dry_run)
@@ -259,7 +259,7 @@ setup(name = PACKAGENAME,
             },
         data_files = [
             ('share/applications', ['data/arandr-sway.desktop']), # FIXME: use desktop-file-install?
-            ('share/man/man1', ['build/arandr.1.gz', 'build/unxrandr.1.gz']),
+            ('share/man/man1', ['build/arandr-sway.1.gz', 'build/unxrandr-sway.1.gz']),
             ],
-        scripts = ['arandr-sway', 'unxrandr'],
+        scripts = ['arandr-sway', 'unxrandr-sway'],
 )
