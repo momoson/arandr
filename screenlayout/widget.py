@@ -567,7 +567,7 @@ class ARandRWidget(Gtk.DrawingArea):
 
         oldpos = self._swayoutput.configuration.outputs[self._draggingoutput].position
         newpos = Position(
-            (oldpos[0] + self.factor * rel[0], oldpos[1] + self.factor * rel[1]))
+            (int(oldpos[0] + self.factor * rel[0]), int(oldpos[1] + self.factor * rel[1])))
         self._swayoutput.configuration.outputs[
             self._draggingoutput
         ].tentative_position = self._draggingsnap.suggest(newpos)
