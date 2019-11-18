@@ -33,7 +33,7 @@ from cairo import Extend
 
 from .snap import Snap
 from .swayoutput import SwayOutput
-from .auxiliary import Position, Transformation, InadequateConfiguration
+from .auxiliary import Position, Transformation, InadequateConfiguration, Rotation
 from .i18n import _
 
 
@@ -169,15 +169,40 @@ class ARandRWidget(Gtk.DrawingArea):
 
     def set_position(self, output_name, pos):
         self._set_something('position', output_name, pos)
+        self._force_repaint()
+        self.emit('changed')
 
     def set_rotation(self, output_name, rot):
-        self._set_something('rotation', output_name, rot)
+        output = self._swayoutput.configuration.outputs[output_name]
+        old_rotation = output.rotation
+        output.rotation = Rotation(int(rot))
+        output.transform.rotation = Rotation(int(rot))
+        if output.rotation.is_odd != old_rotation.is_odd:
+            output.size = (output.size[1],output.size[0])
+        self._force_repaint()
+        self.emit('changed')
 
     def set_resolution(self, output_name, res):
-        self._set_something('mode', output_name, res)
+        output = self._swayoutput.configuration.outputs[output_name]
+        output.mode = res
+        new_size = (res[0]/output.scale,res[1]/output.scale)
+        if output.rotation.is_odd:
+            output.size = (int(new_size[1]),int(new_size[0]))
+        else:
+            output.size = (int(new_size[0]),int(new_size[1]))
+        self._force_repaint()
+        self.emit('changed')
 
     def set_scale(self, output_name, scale):
-        self._set_something('scale', output_name, scale)
+        output = self._swayoutput.configuration.outputs[output_name]
+        output.scale = scale
+        new_size = (output.mode[0]/output.scale,output.mode[1]/output.scale)
+        if output.rotation.is_odd:
+            output.size = (int(new_size[1]),int(new_size[0]))
+        else:
+            output.size = (int(new_size[0]),int(new_size[1]))
+        self._force_repaint()
+        self.emit('changed')
 
     def set_active(self, output_name, active):
         output = self._swayoutput.configuration.outputs[output_name]
