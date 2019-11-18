@@ -547,12 +547,13 @@ class ARandRWidget(Gtk.DrawingArea):
         self._draggingsnap = Snap(
             self._swayoutput.configuration.outputs[self._draggingoutput].size,
             self.factor * 5,
-            [(Position((0, 0)), self._swayoutput.state.virtual.max)] + [
-                (virtual_state.position, virtual_state.size)
-                for (k, virtual_state) in self._swayoutput.configuration.outputs.items()
-                if k != self._draggingoutput and virtual_state.active
+            [
+                (other_output.position, other_output.size)
+                for (k, other_output) in self._swayoutput.configuration.outputs.items()
+                if k != self._draggingoutput and other_output.active
             ]
         )
+        return True
 
     def _dragmotion_cb(self, widget, context, x, y, time):  # pylint: disable=too-many-arguments
         # if not 'screenlayout-output' in context.list_targets():  # from outside
