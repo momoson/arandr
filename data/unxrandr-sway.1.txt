@@ -1,6 +1,6 @@
-==========
- unxrandr
-==========
+===============
+ unxrandr-sway
+===============
 
 -------------------------------
 inverse tool of xrandr
@@ -13,18 +13,18 @@ inverse tool of xrandr
 SYNOPSIS
 =========
 
-``unxrandr``
+``unxrandr-sway``
 
 DESCRIPTION
 ===========
 
-``unxrandr`` is a tool that queries the XRandR state using ARandR's libraries
-and outputs an ``xrandr`` command line that reproduces the state (as far as it
+``unxrandr-sway`` is a tool that queries the swayoutput state using ARandR's libraries
+and outputs an ``swayoutput`` command line that reproduces the state (as far as it
 is supported by the library).
 
 The command
 
-    sh -c "`unxrandr`"
+    sh -c "`unxrandr-sway`"
 
 should never modify the configured state.
 
@@ -33,4 +33,4 @@ It takes no options apart from ``--help`` and ``--version``.
 SEE ALSO
 ========
 
-``man 1 arandr``
+``man 1 arandr-sway``

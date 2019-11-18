@@ -1,10 +1,10 @@
-=========
- arandr
-=========
+=============
+ arandr-sway
+=============
 
--------------------------------
-visual front end for XRandR 1.2
--------------------------------
+--------------------------------
+visual front end for sway-output
+--------------------------------
 
 :Author: chrysn <chrysn@fsfe.org>
 :Date: 2008-06-03
@@ -13,12 +13,12 @@ visual front end for XRandR 1.2
 SYNOPSIS
 =========
 
-``arandr`` [savedfile]
+``arandr-sway`` [savedfile]
 
 DESCRIPTION
 ===========
 
-ARandR is a visual front end for XRandR 1.2 (per display options), which
+ARandR is a visual front end for sway-output (per display options), which
 provides full control over positioning, saving and loading to/from shell
 scripts and easy integration with other applications.
 
@@ -26,9 +26,8 @@ scripts and easy integration with other applications.
 -h, --help         show this help message and exit
 --randr-display=D  Use D as display for xrandr (but still show the GUI on
                    the display from the environment; e.g. `localhost:10.0`)
---force-version    Even run with untested XRandR versions
 
 SEE ALSO
 ========
 
-``man 1 xrandr``
+``man 5 sway-output``
