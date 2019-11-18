@@ -28,12 +28,11 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import GObject, Gtk, Pango, PangoCairo, Gdk, GLib
-from cairo import LinearGradient
-from cairo import Extend
+from cairo import LinearGradient, Extend
 
 from .snap import Snap
 from .swayoutput import SwayOutput
-from .auxiliary import Position, Transformation, InadequateConfiguration, Rotation
+from .auxiliary import Position, InadequateConfiguration, Rotation
 from .i18n import _
 
 
@@ -79,8 +78,6 @@ class ARandRWidget(Gtk.DrawingArea):
     factor = property(lambda self: self._factor, _set_factor)
 
     def abort_if_unsafe(self):
-
-        return False
 
         if not [x for x in self._swayoutput.configuration.outputs.values() if x.active]:
             dialog = Gtk.MessageDialog(
@@ -178,29 +175,29 @@ class ARandRWidget(Gtk.DrawingArea):
         output.rotation = Rotation(int(rot))
         output.transform.rotation = Rotation(int(rot))
         if output.rotation.is_odd != old_rotation.is_odd:
-            output.size = (output.size[1],output.size[0])
+            output.size = (output.size[1], output.size[0])
         self._force_repaint()
         self.emit('changed')
 
     def set_resolution(self, output_name, res):
         output = self._swayoutput.configuration.outputs[output_name]
         output.mode = res
-        new_size = (res[0]/output.scale,res[1]/output.scale)
+        new_size = (res[0]/output.scale, res[1]/output.scale)
         if output.rotation.is_odd:
-            output.size = (int(new_size[1]),int(new_size[0]))
+            output.size = (int(new_size[1]), int(new_size[0]))
         else:
-            output.size = (int(new_size[0]),int(new_size[1]))
+            output.size = (int(new_size[0]), int(new_size[1]))
         self._force_repaint()
         self.emit('changed')
 
     def set_scale(self, output_name, scale):
         output = self._swayoutput.configuration.outputs[output_name]
         output.scale = scale
-        new_size = (output.mode[0]/output.scale,output.mode[1]/output.scale)
+        new_size = (output.mode[0]/output.scale, output.mode[1]/output.scale)
         if output.rotation.is_odd:
-            output.size = (int(new_size[1]),int(new_size[0]))
+            output.size = (int(new_size[1]), int(new_size[0]))
         else:
-            output.size = (int(new_size[0]),int(new_size[1]))
+            output.size = (int(new_size[0]), int(new_size[1]))
         self._force_repaint()
         self.emit('changed')
 
@@ -266,7 +263,6 @@ class ARandRWidget(Gtk.DrawingArea):
 
     def _draw(self, swayoutput, context):  # pylint: disable=too-many-locals
         cfg = swayoutput.configuration
-        state = swayoutput.state
 
         for output_name in self.sequence:
             output = cfg.outputs[output_name]
@@ -285,18 +281,18 @@ class ARandRWidget(Gtk.DrawingArea):
             # show if it is blacked out
             if not output.dpms:
                 context.rectangle(*rect)
-                pattern = LinearGradient(0,0,5*self.factor,5*self.factor)
-                pattern.add_color_stop_rgba(0.0,0,0,0,0.7)
-                pattern.add_color_stop_rgba(0.47,0,0,0,0.7)
-                pattern.add_color_stop_rgba(0.53,0,0,0,0)
+                pattern = LinearGradient(0, 0, 5 * self.factor, 5 * self.factor)
+                pattern.add_color_stop_rgba(0.0, 0, 0, 0, 0.7)
+                pattern.add_color_stop_rgba(0.47, 0, 0, 0, 0.7)
+                pattern.add_color_stop_rgba(0.53, 0, 0, 0, 0)
                 pattern.set_extend(Extend.REFLECT)
                 context.set_source(pattern)
                 context.fill()
                 context.rectangle(*rect)
-                pattern = LinearGradient(0,0,-5*self.factor,5*self.factor)
-                pattern.add_color_stop_rgba(0.0,0,0,0,0.7)
-                pattern.add_color_stop_rgba(0.47,0,0,0,0.7)
-                pattern.add_color_stop_rgba(0.53,0,0,0,0)
+                pattern = LinearGradient(0, 0, -5 * self.factor, 5 * self.factor)
+                pattern.add_color_stop_rgba(0.0, 0, 0, 0, 0.7)
+                pattern.add_color_stop_rgba(0.47, 0, 0, 0, 0.7)
+                pattern.add_color_stop_rgba(0.53, 0, 0, 0, 0)
                 pattern.set_extend(Extend.REFLECT)
                 context.set_source(pattern)
                 context.fill()
@@ -328,7 +324,7 @@ class ARandRWidget(Gtk.DrawingArea):
             layoutoffset = -layoutsize[0] / 2, -layoutsize[1] / 2
             context.move_to(*center)
             if output.transform.flipped:
-                context.scale(-1,1)
+                context.scale(-1, 1)
             context.rotate(output.rotation.angle)
             context.rel_move_to(*layoutoffset)
 
@@ -401,9 +397,6 @@ class ARandRWidget(Gtk.DrawingArea):
     def contextmenu(self):
         menu = Gtk.Menu()
         for output_name in self._swayoutput.outputs:
-            output_config = self._swayoutput.configuration.outputs[output_name]
-            output_state = self._swayoutput.state.outputs[output_name]
-
             i = Gtk.MenuItem(output_name)
             i.props.submenu = self._contextmenu(output_name)
             menu.add(i)
@@ -411,7 +404,7 @@ class ARandRWidget(Gtk.DrawingArea):
         menu.show_all()
         return menu
 
-    def _contextmenu(self, output_name):  # pylint: disable=too-many-locals
+    def _contextmenu(self, output_name):  # pylint: disable=too-many-locals, too-many-statements
         menu = Gtk.Menu()
         output_config = self._swayoutput.configuration.outputs[output_name]
         output_state = self._swayoutput.state.outputs[output_name]
@@ -427,13 +420,13 @@ class ARandRWidget(Gtk.DrawingArea):
             flipped = Gtk.CheckMenuItem(_("Flipped"))
             flipped.props.active = output_config.transform.flipped
             flipped.connect('activate', lambda menuitem: self.set_flipped(
-                 output_name, menuitem.props.active))
+                output_name, menuitem.props.active))
             menu.add(flipped)
 
             blacked_out = Gtk.CheckMenuItem(_("Blacked out"))
             blacked_out.props.active = not output_config.dpms
             blacked_out.connect('activate', lambda menuitem: self.set_dpms(
-                 output_name, not menuitem.props.active))
+                output_name, not menuitem.props.active))
             menu.add(blacked_out)
 
             def _res_set(_menuitem, output_name, mode):
@@ -470,7 +463,7 @@ class ARandRWidget(Gtk.DrawingArea):
                     i.props.sensitive = False
                 or_m.add(i)
 
-            scale_values = [1,2,4,8]
+            scale_values = [1, 2, 4, 8]
             for scale in scale_values:
                 if isclose(scale, output_config.scale):
                     break
@@ -487,12 +480,15 @@ class ARandRWidget(Gtk.DrawingArea):
                     )
 
             def _scale_set_custom(_menuitem, output_name):
-                dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.OK_CANCEL, _("New scaling for output %s" % output_name))
+                dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL,
+                                           Gtk.MessageType.QUESTION,
+                                           Gtk.ButtonsType.OK_CANCEL,
+                                           _("New scaling for output %s" % output_name))
                 dialog.set_title(_("Custom scale"))
-                dialogBox = dialog.get_content_area()
+                dialog_box = dialog.get_content_area()
                 entry = Gtk.Entry()
-                entry.set_size_request(100,0)
-                dialogBox.pack_end(entry, False, False, 0)
+                entry.set_size_request(100, 0)
+                dialog_box.pack_end(entry, False, False, 0)
                 dialog.show_all()
                 response = dialog.run()
                 if response != Gtk.ResponseType.OK:
@@ -538,13 +534,13 @@ class ARandRWidget(Gtk.DrawingArea):
         self.drag_source_set(
             Gdk.ModifierType.BUTTON1_MASK,
             [Gtk.TargetEntry.new('screenlayout-output',
-                             Gtk.TargetFlags.SAME_WIDGET, 0)],
+                                 Gtk.TargetFlags.SAME_WIDGET, 0)],
             Gdk.DragAction.PRIVATE
         )
         self.drag_dest_set(
             0,
             [Gtk.TargetEntry.new('screenlayout-output',
-                             Gtk.TargetFlags.SAME_WIDGET, 0)],
+                                 Gtk.TargetFlags.SAME_WIDGET, 0)],
             Gdk.DragAction.PRIVATE
         )
 
@@ -563,7 +559,7 @@ class ARandRWidget(Gtk.DrawingArea):
         except IndexError:
             # FIXME: abort?
             Gtk.drag_set_icon_stock(context, Gtk.STOCK_CANCEL, 10, 10)
-            return
+            return False
 
         self._draggingoutput = output
         self._draggingfrom = self._lastclick
