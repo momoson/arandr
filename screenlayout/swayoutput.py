@@ -31,7 +31,7 @@ SHELLSHEBANG = '#!/bin/sh'
 
 
 class SwayOutput:
-    DEFAULTTEMPLATE = [SHELLSHEBANG, '%(xrandr)s']
+    DEFAULTTEMPLATE = [SHELLSHEBANG, '%(swayoutput)s']
 
     configuration = None
     state = None
@@ -46,7 +46,7 @@ class SwayOutput:
         return self.state.outputs.keys()
     outputs = property(_get_outputs)
 
-    #################### calling xrandr ####################
+    #################### calling swaymsg output ####################
 
     def _output(self, *args):
         print('swaymsg is called with:')
@@ -72,70 +72,101 @@ class SwayOutput:
     #################### loading ####################
 
     def load_from_string(self, data):
-        pass
-        #data = data.replace("%", "%%")
-        #lines = data.split("\n")
-        #if lines[-1] == '':
-        #    lines.pop()  # don't create empty last line
+        data = data.replace("%", "%%")
+        lines = data.split("\n")
+        if lines[-1] == '':
+            lines.pop()  # don't create empty last line
 
-        #if lines[0] != SHELLSHEBANG:
-        #    raise FileLoadError('Not a shell script.')
+        if lines[0] != SHELLSHEBANG:
+            raise FileLoadError('Not a shell script.')
 
-        #xrandrlines = [i for i, l in enumerate(
-        #    lines) if l.strip().startswith('xrandr ')]
-        #if not xrandrlines:
-        #    raise FileLoadError('No recognized xrandr command in this shell script.')
-        #if len(xrandrlines) > 1:
-        #    raise FileLoadError('More than one xrandr line in this shell script.')
-        #self._load_from_commandlineargs(lines[xrandrlines[0]].strip())
-        #lines[xrandrlines[0]] = '%(xrandr)s'
+        swayoutputlines = [(i, l.strip()) for i, l in enumerate(lines) if l.strip().startswith('swaymsg output')]
+        if not swayoutputlines:
+            raise FileLoadError('No recognized swayoutput command in this shell script.')
 
-        #return lines
+        self.load_from_x()
+        for (i, l) in swayoutputlines:
+            self._load_from_commandlineargs(l)
+
+        lines[swayoutputlines[0][0]] = '%(swayoutput)s'
+        for (i, l) in swayoutputlines[-1:0:-1]:
+            del lines[i]
+
+        return lines
 
     def _load_from_commandlineargs(self, commandline):
-        pass
-        #self.load_from_x()
+        args = BetterList(commandline.split(" "))
+        if args.pop(0) != 'swaymsg' and args.pop(0) != 'output':
+            raise FileSyntaxError()
+        # first part is empty, exclude empty parts
+        options = dict((a[0], a[1:]) for a in args.split('output') if a)
 
-        #args = BetterList(commandline.split(" "))
-        #if args.pop(0) != 'xrandr':
-        #    raise FileSyntaxError()
-        ## first part is empty, exclude empty parts
-        #options = dict((a[0], a[1:]) for a in args.split('--output') if a)
+        for output_name, output_arguments in options.items():
+            output = self.configuration.outputs[output_name]
+            output_state = self.state.outputs[output_name]
+            if 'scale' in output_arguments:
+                i = output_arguments.index('scale')
+                try:
+                    output.scale = float(output_arguments[i+1])
+                except (IndexError, ValueError):
+                    raise FileSyntaxError()
+            if 'disable' in output_arguments:
+                output.active = False
+            if 'enable' in output_arguments:
+                output.active = True
+            if 'res' in output_arguments:
+                i = output_arguments.index('res')
+                try:
+                    mode_string = output_arguments[i+1]
+                except IndexError:
+                    raise FileSyntaxError()
+                try:
+                    width_str, rest = mode_string.split('x')
+                    height_str = rest.split('@')[0]
+                    if len(rest.split('@')) > 1:
+                        rate_str = rest.split('@')[1]
+                        if rate_str[-2:] == 'Hz':
+                            rate_str = rate_str[0:-2]
+                        rate = int(float(rate_str)*1000)
+                    else:
+                        rate = None
+                    width = int(width_str)
+                    height = int(height_str)
+                    mode = Mode(width, height, rate)
+                except ValueError:
+                    raise FileSyntaxError()
+                if mode not in output_state.modes:
+                    raise InadequateConfiguration("Unknown mode")
+                output.mode = mode
 
-        #for output_name, output_argument in options.items():
-        #    output = self.configuration.outputs[output_name]
-        #    output_state = self.state.outputs[output_name]
-        #    output.primary = False
-        #    if output_argument == ['--off']:
-        #        output.active = False
-        #    else:
-        #        if '--primary' in output_argument:
-        #            if Feature.PRIMARY in self.features:
-        #                output.primary = True
-        #            output_argument.remove('--primary')
-        #        if len(output_argument) % 2 != 0:
-        #            raise FileSyntaxError()
-        #        parts = [
-        #            (output_argument[2 * i], output_argument[2 * i + 1])
-        #            for i in range(len(output_argument) // 2)
-        #        ]
-        #        for part in parts:
-        #            if part[0] == '--mode':
-        #                for namedmode in output_state.modes:
-        #                    if namedmode.name == part[1]:
-        #                        output.mode = namedmode
-        #                        break
-        #                else:
-        #                    raise FileLoadError("Not a known mode: %s" % part[1])
-        #            elif part[0] == '--pos':
-        #                output.position = Position(part[1])
-        #            elif part[0] == '--rotate':
-        #                if part[1] not in ROTATIONS:
-        #                    raise FileSyntaxError()
-        #                output.rotation = Rotation(part[1])
-        #            else:
-        #                raise FileSyntaxError()
-        #        output.active = True
+            if 'pos' in output_arguments:
+                i = output_arguments.index('pos')
+                try:
+                    output.position = Position((int(output_arguments[i + 1]), int(output_arguments[i + 2])))
+                except (IndexError, ValueError):
+                    raise FileSyntaxError()
+            if 'dpms' in output_arguments:
+                i = output_arguments.index('dpms')
+                try:
+                    output.dpms = (output_arguments[i+1] == 'on')
+                except IndexError:
+                    raise FileSyntaxError()
+            if 'transform' in output_arguments:
+                i = output_arguments.index('transform')
+                try:
+                    transform = Transformation(output_arguments[i+1])
+                except IndexError:
+                    raise FileSyntaxError()
+                output.transform = transform
+                output.rotation = transform.rotation
+
+            if output.active:
+                # now compute size
+                new_size = (int(output.mode[0]/output.scale), int(output.mode[1]/output.scale))
+                if output.rotation.is_odd:
+                    output.size = Size((new_size[1], new_size[0]))
+                else:
+                    output.size = Size((new_size[0], new_size[1]))
 
     def load_from_x(self):
         self.configuration = self.Configuration(self)
@@ -215,8 +246,9 @@ class SwayOutput:
             template = self.DEFAULTTEMPLATE
         template = '\n'.join(template) + '\n'
 
+        args_sets = self.configuration.commandlineargs()
         data = {
-            'xrandr': "xrandr " + " ".join(self.configuration.commandlineargs())
+            'swayoutput': "\n".join(["swaymsg " + " ".join(args_set) for args_set in args_sets])
         }
         if additional:
             data.update(additional)
