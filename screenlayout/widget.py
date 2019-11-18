@@ -512,18 +512,16 @@ class ARandRWidget(Gtk.DrawingArea):
     def setup_draganddrop(self):
         self.drag_source_set(
             Gdk.ModifierType.BUTTON1_MASK,
-            [Gtk.TargetEntry('screenlayout-output',
+            [Gtk.TargetEntry.new('screenlayout-output',
                              Gtk.TargetFlags.SAME_WIDGET, 0)],
-            0
+            Gdk.DragAction.PRIVATE
         )
         self.drag_dest_set(
             0,
-            [Gtk.TargetEntry('screenlayout-output',
+            [Gtk.TargetEntry.new('screenlayout-output',
                              Gtk.TargetFlags.SAME_WIDGET, 0)],
-            0
+            Gdk.DragAction.PRIVATE
         )
-        # self.drag_source_set(Gdk.BUTTON1_MASK, [], 0)
-        # self.drag_dest_set(0, [], 0)
 
         self._draggingfrom = None
         self._draggingoutput = None
