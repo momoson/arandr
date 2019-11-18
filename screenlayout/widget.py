@@ -383,8 +383,6 @@ class ARandRWidget(Gtk.DrawingArea):
             i.props.submenu = self._contextmenu(output_name)
             menu.add(i)
 
-            if not output_config.active and not output_state.connected:
-                i.props.sensitive = False
         menu.show_all()
         return menu
 
