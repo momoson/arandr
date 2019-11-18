@@ -7,6 +7,9 @@ ARandR-sway is designed to provide a simple visual front end for sway-output.
 Relative monitor positions are shown graphically and can be changed in a drag-and-drop way.
 The GUI is kept similar to the original arandr to make migration as easy as possible.
 
+The lifetime of this project is limited until arandr is extended with flexible backends, 
+see https://gitlab.com/arandr/arandr/issues/34
+
 
 
 Features
@@ -24,46 +27,21 @@ Installation
 
 * Using your distribution's installer:
 
-  * Debian_ / Ubuntu_::
-
-      aptitude install arandr
-
-  * archlinux_::
-
-      pacman -S arandr
-
-  * Gentoo_::
-
-      emerge arandr
-
   * Fedora_::
 
-      yum install arandr
-
-  * OpenSUSE_::
-
-      zypper in arandr
-
-  * Slackware: see slackbuilds.org_
+      dnf copr enable momosomium/arandr-sway
+      dnf install arandr-sway
 
 * From source:
 
-  * Fetch either
+  * Get it directly from github::
 
-    * the `latest release`_::
-
-        wget http://christian.amsuess.com/tools/arandr/files/arandr-0.1.10.tar.gz
-        tar xzf arandr-0.1.10.tar.gz
-        cd arandr-0.1.10
-
-    * or get it directly from GIT (`hosted on GitLab`_)::
-
-        git clone https://gitlab.com/arandr/arandr
-        cd arandr
+      git clone https://github.com/momoson/arandr.git
+      cd arandr
 
   * and start it using::
 
-      ./arandr
+      ./arandr-sway
 
   * or install it::
 
@@ -76,7 +54,7 @@ Dependencies
 
 * python_ 3
 * PyGObject_
-* xrandr_
+* sway_
 * docutils_ (for building the man page)
 
 
