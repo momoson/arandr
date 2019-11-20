@@ -32,7 +32,7 @@ from cairo import LinearGradient, Extend
 
 from .snap import Snap
 from .swayoutput import SwayOutput
-from .auxiliary import Position, InadequateConfiguration, Rotation
+from .auxiliary import Position, InadequateConfiguration, Rotation, Size, Transformation
 from .i18n import _
 
 
@@ -203,6 +203,7 @@ class ARandRWidget(Gtk.DrawingArea):
 
     def set_active(self, output_name, active):
         output = self._swayoutput.configuration.outputs[output_name]
+        output.dpms = True
 
         if not active and output.active:
             output.active = False
@@ -217,7 +218,11 @@ class ARandRWidget(Gtk.DrawingArea):
                 output.active = True
                 output.position = pos
                 output.mode = first_mode
-                output.rotation = Rotation(0)
+                output.scale = 1.0
+                output.size = Size(first_mode[0:2])
+                print(output.size)
+                output.transform = Transformation('normal')
+                output.rotation = output.transform.rotation
 
         self._force_repaint()
         self.emit('changed')
