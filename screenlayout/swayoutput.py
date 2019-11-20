@@ -213,8 +213,9 @@ class SwayOutput:
                 else: # add only if it is new
                     output.modes.append(mode)
 
-            current_mode_dict = output_el['current_mode']
-            current_mode = Mode(current_mode_dict['width'], current_mode_dict['height'], current_mode_dict['refresh'])
+            if active:
+                current_mode_dict = output_el['current_mode']
+                current_mode = Mode(current_mode_dict['width'], current_mode_dict['height'], current_mode_dict['refresh'])
 
             self.state.outputs[output.name] = output
             self.configuration.outputs[output.name] = self.configuration.OutputConfiguration(
